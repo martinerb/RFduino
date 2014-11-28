@@ -1,39 +1,48 @@
 #include "variant.h"
 #include "Arduino.h"
 #include "shell.h"
+#include "RFduinoGZLL.h"
+#include "client.h"
+#include "host.h"
 
-void myinit();
+
+void device();
+void host();
 int main() {
-	myinit();
+	Serial.begin(9600);
 
 	int a = 0;
 
 	while (1) {
 		if (Serial.available() > 0)
 			a = Serial.read();
-		if (a != 0)
+		if (a == 'h') {
+			Serial.println("BIN host");
+			host();
 			break;
+		}
+		if (a == 'd') {
+			Serial.println("BIN device");
+			device();
+			break;
+		}
 	}
-	shell();
 
-//  char* examplemainhelptext="this is mein main function";
-//  addNewCommand(examplemaincommandsadd,"startmy",examplemainhelptext);
-
-//endless loop we should never jump out
-//while (1) {
-//	if (Serial.available() > 0) {
-//		char a = Serial.read();
-//		Serial.print("I received: ");
-//		Serial.println(a);
-//	}
-//}
+	while (1) {
+		shell();
+	}
 	return 0;
 }
 
-void myinit() {
-	Serial.begin(9600);
 
+void device() {
+	clientInit();
 }
+void host() {
+	hostInit();
+	while(1);
+}
+
 
 //if (Serial.available() > 0) {
 //			incomingByte = Serial.read();

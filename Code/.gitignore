@@ -1,0 +1,13 @@
+# Ignored Files/Folders:
+build/
+*.list
+*.map
+*.img
+*.elf
+*.d
+*.o
+*~
+*.hex
+.cproject
+.project
+

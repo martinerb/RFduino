@@ -48,8 +48,9 @@ afiles:
 
 main: $(CXXTAR) $(CTAR)
 
+#$(CPATH)$(CXXCOMPILER) -Wl,--gc-sections --specs=nano.specs -mcpu=$(CPU) -mthumb -D__RFduino__ -TRFduino.ld -Wl,-Map,$(BUILD)$(PROJECTSOURCE).map -Wl,--cref -o $(BUILD)$(PROJECTSOURCE).elf -L$(LINKEROUTPUT) -L$(ARMLIB) -Wl,--warn-common -Wl,--warn-section-align -Wl,--start-group $(BUILD)syscalls.o $(TAROBJ) $(BUILD)variant.o $(LIBS)libRFduinoSystem.a $(LIBS)libRFduino.a $(LIBS)libRFduinoBLE.a $(LIBS)libRFduinoGZLL.a $(BUILD)core.a -Wl,--end-group 
 link:
-	$(CPATH)$(CXXCOMPILER) -Wl,--gc-sections --specs=nano.specs -mcpu=$(CPU) -mthumb -D__RFduino__ -TRFduino.ld -Wl,-Map,$(BUILD)$(PROJECTSOURCE).map -Wl,--cref -o $(BUILD)$(PROJECTSOURCE).elf -L$(LINKEROUTPUT) -L$(ARMLIB) -Wl,--warn-common -Wl,--warn-section-align -Wl,--start-group $(BUILD)syscalls.o $(TAROBJ) $(BUILD)variant.o $(LIBS)libRFduinoSystem.a $(LIBS)libRFduino.a $(LIBS)libRFduinoBLE.a $(LIBS)libRFduinoGZLL.a $(BUILD)core.a -Wl,--end-group 
+	$(CPATH)$(CXXCOMPILER) -Wl,--gc-sections --specs=nano.specs -mcpu=$(CPU) -mthumb -D__RFduino__ -TRFduino.ld -Wl,-Map,$(BUILD)$(PROJECTSOURCE).map -Wl,--cref -o $(BUILD)$(PROJECTSOURCE).elf -L$(LINKEROUTPUT) -L$(ARMLIB) -Wl,--warn-common -Wl,--warn-section-align -Wl,--start-group $(BUILD)syscalls.o $(TAROBJ) $(BUILD)variant.o $(LIBS)libRFduinoSystem.a $(LIBS)libRFduino.a $(LIBS)libRFduinoGZLL.a $(BUILD)core.a -Wl,--end-group 
 	$(CPATH)arm-none-eabi-objcopy -O ihex $(BUILD)$(PROJECTSOURCE).elf $(BUILD)$(PROJECTSOURCE).hex 
 	
 $(BUILD):
@@ -61,6 +62,9 @@ clean :
 cleansource :
 	rm -f $(CTAR)
 	rm -f $(CXXTAR)
-load:
+	
+load1:
 	/usr/bin/wine /home/martin/Desktop/arduino-1.5.8/hardware/arduino/RFduino/RFDLoader.exe -q com1 $(BUILD)$(PROJECTSOURCE).hex
-
+	
+load2:
+	/usr/bin/wine /home/martin/Desktop/arduino-1.5.8/hardware/arduino/RFduino/RFDLoader.exe -q com2 $(BUILD)$(PROJECTSOURCE).hex

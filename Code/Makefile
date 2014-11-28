@@ -11,13 +11,25 @@ load:
 	make -f makefile.md load
 	picocom /dev/ttyUSB1
 
-eclipse:
+eclipse1:
 	make -f makefile.md cleansource
 	make -f makefile.md all
 	make -f makefile.md afiles
 	make -f makefile.md main
 	make -f makefile.md link
-	make -f makefile.md load
+	make -f makefile.md load1
+	make -f makefile.md load2
+
+eclipse2:
+	make -f makefile.md cleansource
+	make -f makefile.md all
+	make -f makefile.md afiles
+	make -f makefile.md main
+	make -f makefile.md link
+	make -f makefile.md load2
 
 without-core:
 	make -f makefile.md main
+	
+	
+	

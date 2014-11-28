@@ -23,6 +23,7 @@
 #include "string.h"
 #include "Arduino.h"
 #include "variant.h"
+#include "RFduinoGZLL.h"
 
 typedef struct {
 	fcn_ptr command;
@@ -41,11 +42,10 @@ void shell() {
 	addNewCommand(helpOutput, "help", help_test);
 	Serial.println("Starting Shell!!");
 
-
 	char* shell_prompt = "cmd> ";
 	uint32_t exit = 1;
 	int32_t len = 0;
-	char input[64]="";
+	char input[64] = "";
 	uint8_t command_to_execute = 0;
 	uint32_t counter = 0;
 
@@ -54,25 +54,26 @@ void shell() {
 		Serial.print(shell_prompt);
 		do {
 			if (Serial.available() > 0) {
-				input[len] = (char)Serial.read();
+				input[len] = (char) Serial.read();
 //	      if(input[len] == 0x7F){
 //	        input[len] = 0;
 //	        len -=2;
 //	      }
-				if((int)(input[len]) == 13)
-				{
+				if ((input[len]) == '\r') {
 					len++;
 					break;
 				}
 				Serial.print(input[len]);
 				len++;
 			}
-		}while(1);
+		} while (1);
 		len--;
 		input[len] = 0;
 
 		if (strcmp(input, "exit") == 0) {
 			exit = 0;
+		} else if (strcmp(input, "send") == 0) {
+			RFduinoGZLL.sendToHost("DAS IST EIN TEXT");
 		} else {
 			while (counter < commandcounter) {
 				if (strcmp(input, allcommands[counter].command_name) == 0) {
@@ -91,7 +92,7 @@ void shell() {
 		counter = 0;
 		command_to_execute = 0;
 	}
-	Serial.println("Close shell");
+	Serial.println("\n\rClose shell");
 }
 
 void addNewCommand(fcn_ptr function_pointer, char command_name[24],
@@ -116,7 +117,7 @@ void helpOutput() {
 	int i;
 	for (i = 0; i < commandcounter; i++) {
 		if (allcommands[i].help_text != 0) {
-			Serial.printf("%s:\t\t%s\n", allcommands[i].command_name,
+			Serial.printf("%s:\t\t%s\r", allcommands[i].command_name,
 					allcommands[i].help_text);
 		}
 	}
