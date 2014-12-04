@@ -2,6 +2,6 @@
 #define CLIENT
 
 
-void clientInit();
+void clientInit(bool ble_enable);
 
 #endif /* CLIENT */

@@ -23,7 +23,7 @@
 #include "string.h"
 #include "Arduino.h"
 #include "variant.h"
-#include "RFduinoGZLL.h"
+
 
 typedef struct {
 	fcn_ptr command;
@@ -69,11 +69,9 @@ void shell() {
 		} while (1);
 		len--;
 		input[len] = 0;
-
+		Serial.println("");
 		if (strcmp(input, "exit") == 0) {
 			exit = 0;
-		} else if (strcmp(input, "send") == 0) {
-			RFduinoGZLL.sendToHost("DAS IST EIN TEXT");
 		} else {
 			while (counter < commandcounter) {
 				if (strcmp(input, allcommands[counter].command_name) == 0) {

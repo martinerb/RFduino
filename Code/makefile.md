@@ -13,11 +13,18 @@ LIBS ?= libraries/
 PROJECTSOURCE ?= main
 
 CPATH ?= /home/martin/Arduino-compiler/tools/gcc-arm-none-eabi-4.8.3-2014q1/bin/
-CXXCOMPILER ?= arm-none-eabi-g++
-CCOMPILER ?= arm-none-eabi-gcc
-ARCOMPILER ?= arm-none-eabi-ar
-CXXFLAGS ?= -c -g -Os -w -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions -fno-builtin -mcpu=$(CPU) -DF_CPU=$(FREQ) -DARDUINO=158 -mthumb -D__RFduino__
-CFLAGS ?= -c -g -Os -w -ffunction-sections -fdata-sections -fno-builtin -mcpu=$(CPU) -DF_CPU=$(FREQ) -DARDUINO=158 -mthumb -D__RFduino__
+COMPILER ?= arm-none-eabi
+
+#CPATH ?=
+#COMPILER ?= arm-linux-gnueabihf
+CXXCOMPILER ?= $(COMPILER)-g++
+CCOMPILER ?= $(COMPILER)-gcc
+ARCOMPILER ?= $(COMPILER)-ar
+OBJCOMPILER ?= $(COMPILER)-objcopy
+#-mfloat-abi=soft
+
+CXXFLAGS ?= -std=c99 -c -g -Os -w -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions -fno-builtin -mcpu=$(CPU) -DF_CPU=$(FREQ) -DARDUINO=158 -mthumb -D__RFduino__
+CFLAGS ?= -std=c99 -c -g -Os -w -ffunction-sections -fdata-sections -fno-builtin -mcpu=$(CPU) -DF_CPU=$(FREQ) -DARDUINO=158 -mthumb -D__RFduino__
 ARFLAGS ?= rcs
 
 CXXTAR =  $(patsubst $(SOURCE)%.cpp,$(BUILD)%.o,$(wildcard $(SOURCE)*.cpp))
@@ -50,8 +57,8 @@ main: $(CXXTAR) $(CTAR)
 
 #$(CPATH)$(CXXCOMPILER) -Wl,--gc-sections --specs=nano.specs -mcpu=$(CPU) -mthumb -D__RFduino__ -TRFduino.ld -Wl,-Map,$(BUILD)$(PROJECTSOURCE).map -Wl,--cref -o $(BUILD)$(PROJECTSOURCE).elf -L$(LINKEROUTPUT) -L$(ARMLIB) -Wl,--warn-common -Wl,--warn-section-align -Wl,--start-group $(BUILD)syscalls.o $(TAROBJ) $(BUILD)variant.o $(LIBS)libRFduinoSystem.a $(LIBS)libRFduino.a $(LIBS)libRFduinoBLE.a $(LIBS)libRFduinoGZLL.a $(BUILD)core.a -Wl,--end-group 
 link:
-	$(CPATH)$(CXXCOMPILER) -Wl,--gc-sections --specs=nano.specs -mcpu=$(CPU) -mthumb -D__RFduino__ -TRFduino.ld -Wl,-Map,$(BUILD)$(PROJECTSOURCE).map -Wl,--cref -o $(BUILD)$(PROJECTSOURCE).elf -L$(LINKEROUTPUT) -L$(ARMLIB) -Wl,--warn-common -Wl,--warn-section-align -Wl,--start-group $(BUILD)syscalls.o $(TAROBJ) $(BUILD)variant.o $(LIBS)libRFduinoSystem.a $(LIBS)libRFduino.a $(LIBS)libRFduinoGZLL.a $(BUILD)core.a -Wl,--end-group 
-	$(CPATH)arm-none-eabi-objcopy -O ihex $(BUILD)$(PROJECTSOURCE).elf $(BUILD)$(PROJECTSOURCE).hex 
+	$(CPATH)$(CXXCOMPILER) -Wl,--gc-sections --specs=nano.specs -mcpu=$(CPU) -mthumb -D__RFduino__ -TRFduino.ld -Wl,-Map,$(BUILD)$(PROJECTSOURCE).map -Wl,--cref -o $(BUILD)$(PROJECTSOURCE).elf -L$(LINKEROUTPUT) -L$(ARMLIB) -Wl,--warn-common -Wl,--warn-section-align -Wl,--start-group $(BUILD)syscalls.o $(TAROBJ) $(BUILD)variant.o $(LIBS)libRFduinoSystem.a $(LIBS)libRFduino.a $(LIBS)libRFduinoGZLL.a $(LIBS)libRFduinoBLE.a $(BUILD)core.a -Wl,--end-group 
+	$(CPATH)$(OBJCOMPILER) -O ihex $(BUILD)$(PROJECTSOURCE).elf $(BUILD)$(PROJECTSOURCE).hex 
 	
 $(BUILD):
 	mkdir $@

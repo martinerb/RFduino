@@ -1,6 +1,6 @@
 #ifndef HOST
 #define HOST
 
-void hostInit();
+void hostInit(bool ble_enable);
 
 #endif /* HOST */
