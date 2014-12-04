@@ -2,12 +2,14 @@
 #include "Arduino.h"
 #include "shell.h"
 #include "RFduinoBLE.h"
+#include "client.h"
+#include "host.h"
+#include "sensor.h"
 void mainInit();
 
 
 void device();
 void host();
-
 
 int main() {
 	mainInit();
@@ -36,10 +38,10 @@ int main() {
 }
 
 void device() {
-	clientInit();
+	clientInit(false);
 }
 void host() {
-	hostInit();
+	hostInit(false);
 	while (1)
 		;
 }
@@ -48,6 +50,10 @@ void mainInit(){
 	Serial.begin(9600);
 	addNewCommand(readTemperature,"temp","read the temperaturevalue of the BLE shield");
 
+  Serial.println("The device id is:");
+  uint64_t id = getDeviceId();
+  Serial.printf("%x",getDeviceIdLow());
+  Serial.printf("%x",getDeviceIdHigh());
 
 }
 
