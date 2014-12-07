@@ -10,7 +10,7 @@ CORE ?= core/
 CMSIS ?= core/system/CMSIS/CMSIS/Include/
 LIBS ?= libraries/
 
-PROJECTSOURCE ?= main
+PROJECTSOURCE ?= start
 
 CPATH ?= /home/martin/Arduino-compiler/tools/gcc-arm-none-eabi-4.8.3-2014q1/bin/
 COMPILER ?= arm-none-eabi
@@ -71,7 +71,7 @@ cleansource :
 	rm -f $(CXXTAR)
 	
 load1:
-	/usr/bin/wine /home/martin/Desktop/arduino-1.5.8/hardware/arduino/RFduino/RFDLoader.exe -q com1 $(BUILD)$(PROJECTSOURCE).hex
+	/usr/bin/wine /home/martin/Repository/RFduino/RFDLoader.exe -q com1 $(BUILD)$(PROJECTSOURCE).hex
 	
 load2:
-	/usr/bin/wine /home/martin/Desktop/arduino-1.5.8/hardware/arduino/RFduino/RFDLoader.exe -q com2 $(BUILD)$(PROJECTSOURCE).hex
+	/usr/bin/wine /home/martin/Repository/RFduino/RFDLoader.exe -q com2 $(BUILD)$(PROJECTSOURCE).hex

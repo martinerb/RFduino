@@ -42,78 +42,22 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#define ARDUINO_MAIN
 #include "Arduino.h"
-#include "variant.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-// widen rtc1 to 40-bit (1099511627775 ticks = 33554431999969us = 388 days)
-// (dont overflow uint64_t when multipying by 1000000)
-volatile uint64_t rtc1 = 0;
-
-void RTC1_Interrupt( void )
+/*
+ * \brief Main entry point of Arduino application
+ */
+int main( void )
 {
-  if (NRF_RTC1->EVENTS_OVRFLW)
-  {
-    // extend counter
-    rtc1 += 0x1000000LLU;
-    // truncate to 40-bit
-    rtc1 &= 0xffffffffffLLU;
-    NRF_RTC1->EVENTS_OVRFLW = 0;
-  }
+    init();
 
-  NRF_RTC1->EVENTS_COMPARE[0] = 0;
-}
+    setup();
 
-uint64_t millis64( void )
-{
-  return (rtc1 + NRF_RTC1->COUNTER) * 1000 >> 15;  // divide by 32768
-}
-
-uint64_t micros64( void )
-{
-  // accurate to 30.517us
-  return (rtc1 + NRF_RTC1->COUNTER) * 1000000 >> 15;  // divide by 32768
-}
-
-uint32_t millis( void )
-{
-	return millis64();
-}
-
-uint32_t micros( void )
-{
-  return micros64();
-}
-
-void delay( uint32_t ms )
-{
-  uint32_t start = millis();
-  while (millis() - start < ms)
-    yield();
-  	//continue;
-}
-
-void delayMicroseconds( uint32_t us )
-{
-    while (us--)
+    for (;;)
     {
-        __ASM(" NOP\n\t"
-        " NOP\n\t"
-        " NOP\n\t"
-        " NOP\n\t"
-        " NOP\n\t"
-        " NOP\n\t"
-        " NOP\n\t"
-        " NOP\n\t"
-        " NOP\n\t"
-        " NOP\n\t"
-        " NOP\n\t");
-    };
-}
+        loop();
+    }
 
-#ifdef __cplusplus
+    return 0;
 }
-#endif

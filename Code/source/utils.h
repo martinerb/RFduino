@@ -43,11 +43,11 @@
     #define DEBUG_VAL_LN(val)
 #endif
 
-#define RETURN_IFN_0(code) do { \
-                                errv_t ret_RETURN_IFN_0 = code; \
-                                if (ret_RETURN_IFN_0 != 0)   \
-                                    return ret_RETURN_IFN_0; \
-                              } while(0)
+//#define RETURN_IFN_0(code) do { \
+//                                errv_t ret_RETURN_IFN_0 = code; \
+//                                if (ret_RETURN_IFN_0 != 0)   \
+//                                    return ret_RETURN_IFN_0; \
+//                              } while(0)
 
 
 // add space at the end and make things shorter

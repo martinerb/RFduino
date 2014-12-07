@@ -30,6 +30,12 @@ int ads1231_offset = ADS1231_OFFSET;
  * Initialize the interface pins
  */
 void ads1231_init(void) {
+ Serial.println("start ADC init");
+  pinMode(ADS1231_PWDN, OUTPUT);
+  digitalWrite(ADS1231_PWDN, LOW);
+	delay(1);
+	digitalWrite(ADS1231_PWDN, HIGH);
+
 	// We send the clock
 	pinMode(ADS1231_CLK_PIN, OUTPUT);
 
@@ -39,10 +45,9 @@ void ads1231_init(void) {
 	digitalWrite(ADS1231_DATA_PIN, HIGH);
 
 	// Set CLK low to get the ADS1231 out of suspend
-	digitalWrite(ADS1231_CLK_PIN, 0);
+	digitalWrite(ADS1231_CLK_PIN, LOW);
+	delay(1);
 
-	// Read absolute offset from EPROM
-	//   EEPROM_read(ADS1231_OFFSET_EEPROM_POS, ads1231_offset);
 }
 
 /*
@@ -64,18 +69,25 @@ errv_t ads1231_get_value(long& val) {
 		if (millis() > start + 150)
 			return ADS1231_TIMEOUT_HIGH; // Timeout waiting for HIGH
 	}
+	//Serial.println("received high waiting for low");
 	start = millis();
 	while (digitalRead(ADS1231_DATA_PIN) != LOW) {
 		if (millis() > start + 150)
 			return ADS1231_TIMEOUT_LOW; // Timeout waiting for LOW
 	}
+	//Serial.println("received low start");
 	ads1231_last_millis = millis();
 
 	// Read 24 bits
 	for (i = 23; i >= 0; i--) {
 		digitalWrite(ADS1231_CLK_PIN, HIGH);
-		val = (val << 1) + digitalRead(ADS1231_DATA_PIN);
+		delay(1);
+		//delayMicroseconds(100);
+		int ret = digitalRead(ADS1231_DATA_PIN);
+		val = (val << 1) + ret ;
 		digitalWrite(ADS1231_CLK_PIN, LOW);
+		//delayMicroseconds(100);
+		delay(1);
 	}
 
 	/* Bit 23 is acutally the sign bit. Shift by 8 to get it to the
@@ -88,7 +100,9 @@ errv_t ads1231_get_value(long& val) {
 	 * To get it to the default state (high) we toggle the clock one
 	 * more time (see datasheet page 14 figure 19).
 	 */
+	//delay(5);
 	digitalWrite(ADS1231_CLK_PIN, HIGH);
+	//delay(1);
 	digitalWrite(ADS1231_CLK_PIN, LOW);
 
 	return 0; // Success
@@ -133,11 +147,14 @@ errv_t ads1231_get_stable_grams(int& grams) {
 	int i = 0;
 	unsigned long start = millis();
 	int weight_last, weight;
-	RETURN_IFN_0(ads1231_get_grams(weight));
+	//RETURN_IFN_0(ads1231_get_grams(weight));
+	errv_t t= ads1231_get_grams(weight);
 	while (i < 2) {
 		delay(100); // TODO make this a constant in config.h
 		weight_last = weight;
-		RETURN_IFN_0(ads1231_get_grams(weight));
+
+		//RETURN_IFN_0(ads1231_get_grams(weight));
+		t  = ads1231_get_grams(weight);
 		// TODO maybe this would be more correct...? do we have abs?
 		//if (abs((weight_last - weight) < WEIGHT_EPSILON)
 		if (weight_last == weight) {
@@ -167,8 +184,8 @@ errv_t ads1231_get_stable_grams(int& grams) {
  */
 errv_t ads1231_tare(int& grams) {
 	// get grams or return error immediately on error
-	RETURN_IFN_0(ads1231_get_stable_grams(grams));
-
+	//RETURN_IFN_0(ads1231_get_stable_grams(grams));
+	errv_t t = ads1231_get_stable_grams(grams);
 	// success
 	ads1231_offset += -grams;
 	//   EEPROM_write(ADS1231_OFFSET_EEPROM_POS, ads1231_offset);
