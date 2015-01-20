@@ -7,15 +7,15 @@ class SIMCOM900 : public virtual GSM {
 
 private:
      int configandwait(char* pin);
-     int setPIN(char *pin);
      int changeNSIPmode(char);
 
 public:
      SIMCOM900();
      ~SIMCOM900();
      int getCCI(char* cci);
-     int getIMEI(char* imei);
-     int sendSMS(const char* to, const char* msg);
+     char* getIMEI();
+     //int sendSMS(const char* to, const char* msg);
+
      boolean readSMS(char* msg, int msglength, char* number, int nlength);
      boolean readCall(char* number, int nlength);
      boolean call(char* number, unsigned int milliseconds);
@@ -26,14 +26,14 @@ public:
      int readCellData(int &mcc, int &mnc, long &lac, long &cellid);
      void SimpleRead();
      void WhileSimpleRead();
-     void SimpleWrite(char *comm);
+     /*void SimpleWrite(char *comm);
      void SimpleWrite(char const *comm);
      void SimpleWrite(int comm);
      void SimpleWrite(const __FlashStringHelper *pgmstr);
      void SimpleWriteln(char *comm);
      void SimpleWriteln(char const *comm);
      void SimpleWriteln(const __FlashStringHelper *pgmstr);
-     void SimpleWriteln(int comm);
+     void SimpleWriteln(int comm);*/
 };
 
 extern SIMCOM900 gsm;

@@ -9,17 +9,19 @@
 
 #define HW_SERIAL_RX 2
 #define HW_SERIAL_TX 3
+#define HW_BAUDRATE 9600
 
 class HWSerial {
-#ifdef MEGA
 private:
      int write_error;
      size_t printNumber(unsigned long, uint8_t);
      size_t printFloat(double, uint8_t);
-
+     int hw_baudrate;
 public:
+
      HWSerial();
 
+     void printError(const char*);
      //bool listen();
      void end();
      /*
@@ -27,7 +29,8 @@ public:
      bool overflow();
      */
      int peek();
-     virtual void begin(long baud_rate);
+     virtual void begin(int baud_rate);
+
 
      virtual size_t write(uint8_t byte);
      size_t write(const char *str) {
@@ -69,7 +72,6 @@ public:
      boolean find(char *target);
      boolean  findUntil(char *target, char *terminate);
 
-#endif
 
 };
 #endif

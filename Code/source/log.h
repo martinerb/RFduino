@@ -12,7 +12,7 @@
 class LOG {
 public:
      LOG(int level);
-     void DEBUG(const char* string);
+     //void DEBUG(const char* string);
      void INFO(const char* string);
      void WARNING(const char* string);
      void CRITICAL(const char* string);

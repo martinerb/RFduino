@@ -1,7 +1,6 @@
 #ifndef GSM_H
 #define GSM_H
 
-//#define UNO
 #define MEGA
 #include "HWSerial.h"
 //#include <inttypes.h>
@@ -9,39 +8,17 @@
 
 
 #define ctrlz 26 //Ascii character for ctr+z. End of a SMS.
-#define cr    13 //Ascii character for carriage return. 
-#define lf    10 //Ascii character for line feed. 
+#define cr    13 //Ascii character for carriage return.
+#define lf    10 //Ascii character for line feed.
 #define ctrlz 26 //Ascii character for ctr+z. End of a SMS.
-#define cr    13 //Ascii character for carriage return. 
+#define cr    13 //Ascii character for carriage return.
 #define lf    10 //Ascii character for line feed.
 #define GSM_LIB_VERSION 308 // library version X.YY (e.g. 1.00)
 
-#define DEBUG_ON
-
-
-//#ifdef MEGA
-#include "HardwareSerial.h"
-//#endif
-
-// if defined - debug print is enabled with possibility to print out
-// debug texts to the terminal program
-//#define DEBUG_PRINT
-
-// if defined - debug print is enabled with possibility to print out
-// the data recived from gsm module
-//#define DEBUG_GSMRX
-
-// if defined - debug LED is enabled, otherwise debug LED is disabled
-//#define DEBUG_LED_ENABLED
-
-// if defined - SMSs are not send(are finished by the character 0x1b
-// which causes that SMS are not send)
-// by this way it is possible to develop program without paying for the SMSs
-//#define DEBUG_SMS_ENABLED
-
+#include "HWSerial.h"
 
 // pins definition
-#define GSM_ON              8 // connect GSM Module turn ON to pin 77 
+#define GSM_ON              8 // connect GSM Module turn ON to pin 77
 #define GSM_RESET           9 // connect GSM Module RESET to pin 35
 //#define DTMF_OUTPUT_ENABLE  71 // connect DTMF Output Enable not used
 #define DTMF_DATA_VALID     14 // connect DTMF Data Valid to pin 14
@@ -62,8 +39,6 @@
 #define PARAM_SET_1   1
 
 // DTMF signal is NOT valid
-//#define DTMF_NOT_VALID      0x10
-
 
 // status bits definition
 #define STATUS_NONE                 0
@@ -171,7 +146,6 @@ private:
      // variables connected with communication buffer
 
      uint8_t *p_comm_buf;               // pointer to the communication buffer
-     uint8_t comm_buf_len;              // num. of characters in the buffer
      uint8_t rx_state;                  // internal state of rx state machine
      uint16_t start_reception_tmout; // max tmout for starting reception
      uint16_t interchar_tmout;       // previous time in msec.
@@ -182,19 +156,13 @@ private:
      char InitSMSMemory(void);
 
 protected:
-//#ifdef MEGA
-     //HWSerial _cell;
 
-//#endif
-//#ifdef UNO
-//     SoftwareSerial _cell;
-//#endif
      int isIP(const char* cadena);
 
 public:
-//#ifdef UNO
-//     WideTextFinder _tf;
-//#endif
+
+
+          uint8_t comm_buf_len;              // num. of characters in the buffer
      HWSerial _cell;
      inline void setStatus(GSM_st_e status) {
           _status = status;
@@ -203,7 +171,7 @@ public:
      inline int getStatus() {
           return _status;
      };
-     virtual int begin(long baud_rate);
+     virtual int begin(int baud_rate);
      inline void SetCommLineStatus(uint8_t new_status) {
           comm_line_status = new_status;
      };
@@ -224,6 +192,9 @@ public:
                             uint16_t start_comm_tmout, uint16_t max_interchar_tmout,
                             char const *response_string,
                             uint8_t no_of_attempts);
+     char* SendATCmdWaitRespValue(char const *AT_cmd_string,
+         uint16_t start_comm_tmout, uint16_t max_interchar_tmout,
+         uint8_t no_of_attempts);
      void Echo(uint8_t state);
 
 
@@ -257,16 +228,10 @@ public:
      // returns whether complete initialization was made
      uint8_t IsInitialized(void);
      //-----------------------
-
-     // debug methods
-#ifdef DEBUG_LED_ENABLED
-     void BlinkDebugLED (uint8_t num_of_blink);
-#endif
-
-#ifdef DEBUG_PRINT
-     void DebugPrint(const char *string_to_print, uint8_t last_debug_print);
-     void DebugPrint(int number_to_print, uint8_t last_debug_print);
-#endif
+     char sendSMS(char *number_str, char *message_str);
+     char getSMS(byte position, char *phone_number, char *SMS_text, byte max_SMS_len);
+     char isSMSPresent(byte required_status);
+     int setPIN(char *pin);
 };
 
 #endif

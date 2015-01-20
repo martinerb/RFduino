@@ -115,7 +115,7 @@ void helpOutput() {
 	int i;
 	for (i = 0; i < commandcounter; i++) {
 		if (allcommands[i].help_text != 0) {
-			Serial.printf("%s:\t\t%s\r", allcommands[i].command_name,
+			Serial.printf("%s:\t\t%s\r\n", allcommands[i].command_name,
 					allcommands[i].help_text);
 		}
 	}

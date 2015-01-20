@@ -26,13 +26,13 @@ void LOG::DATA(int number)
      }
 }
 
-void LOG::DEBUG(const char* string)
-{
-     if (_level > 3) {
-          Serial.print("\n[DEBUG]: ");
-          Serial.println(string);
-     }
-}
+//void LOG::DEBUG(char* string)
+//{
+//     if (_level > 3) {
+//          Serial.print("\n[DEBUG]: ");
+//          Serial.println(string);
+//     }
+//}
 
 void LOG::INFO(const char* string)
 {

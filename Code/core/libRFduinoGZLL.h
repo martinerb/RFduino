@@ -50,7 +50,8 @@ typedef enum
   DEVICE5,
   DEVICE6,
   DEVICE7,
-  HOSTDEVICE
+  HOSTDEVICE,
+	NOTDEFINED
 } device_t;
 
 // -20 dBm to +4 dBm - default +4 dBm

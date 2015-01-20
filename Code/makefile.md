@@ -70,6 +70,9 @@ cleansource :
 	rm -f $(CTAR)
 	rm -f $(CXXTAR)
 	
+load0:
+	/usr/bin/wine /home/martin/Repository/RFduino/RFDLoader.exe -q com0 $(BUILD)$(PROJECTSOURCE).hex
+	
 load1:
 	/usr/bin/wine /home/martin/Repository/RFduino/RFDLoader.exe -q com1 $(BUILD)$(PROJECTSOURCE).hex
 	
