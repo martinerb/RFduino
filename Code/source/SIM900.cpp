@@ -2,13 +2,9 @@
 #include "Streaming.h"
 #include "HWSerial.h"
 
-#define _GSM_CONNECTION_TOUT_ 4
-#define _TCP_CONNECTION_TOUT_ 5
-#define _GSM_DATA_TOUT_ 6
-
-//#define DEBUG_ON
-
-//#define RESETPIN 7
+//#define _GSM_CONNECTION_TOUT_ 4
+//#define _TCP_CONNECTION_TOUT_ 5
+//#define _GSM_DATA_TOUT_ 6
 
 SIMCOM900 gsm;
 SIMCOM900::SIMCOM900() {
@@ -75,7 +71,7 @@ int SIMCOM900::configandwait(char* pin) {
 	for (int i = 0; i < 10; i++) {
 		//Ask for register status to GPRS network.
 		//SimpleWriteln(F("AT+CGREG?"));
-			_cell.println(F("AT+CGREG?"));
+		_cell.println(F("AT+CGREG?"));
 		//Se espera la unsolicited response de registered to network.
 		while (gsm.WaitResp(5000, 50, "+CGREG: 0,") != RX_FINISHED_STR_RECV)
 		//while (_tf.find("+CGREG: 0,"))  // CHANGE!!!!
@@ -205,26 +201,6 @@ boolean SIMCOM900::call(char* number, unsigned int milliseconds) {
 
 }
 
-int GSM::setPIN(char *pin) {
-	//Status = READY or ATTACHED.
-	if ((getStatus() != IDLE))
-		return 2;
-
-	//AT command to set PIN.
-	_cell.begin(9600);
-	_cell.print(F("AT+CPIN="));
-	_cell.println(pin);
-	//SimpleWrite(F("AT+CPIN="));
-	//SimpleWriteln(pin);
-
-	//Expect str_ok.
-
-	if (gsm.WaitResp(5000, 50, str_ok) != RX_FINISHED_STR_NOT_RECV)
-		return 0;
-	else
-		return 1;
-}
-
 int SIMCOM900::changeNSIPmode(char mode) {
 	//_tf.setTimeout(_TCP_CONNECTION_TOUT_);
 
@@ -291,104 +267,6 @@ int SIMCOM900::available() {
 
 uint8_t SIMCOM900::read() {
 	return _cell.read();
-}
-
-//---------------------------------------------
-/**********************************************************
- Turns on/off the speaker
-
- off_on: 0 - off
- 1 - on
- **********************************************************/
-void GSM::SetSpeaker(byte off_on) {
-	if (CLS_FREE != GetCommLineStatus())
-		return;
-	SetCommLineStatus(CLS_ATCMD);
-	if (off_on) {
-		//SendATCmdWaitResp("AT#GPIO=5,1,2", 500, 50, "#GPIO:", 1);
-	} else {
-		//SendATCmdWaitResp("AT#GPIO=5,0,2", 500, 50, "#GPIO:", 1);
-	}
-	SetCommLineStatus(CLS_FREE);
-}
-
-byte GSM::IsRegistered(void) {
-	return (module_status & STATUS_REGISTERED);
-}
-
-byte GSM::IsInitialized(void) {
-	return (module_status & STATUS_INITIALIZED);
-}
-
-/**********************************************************
- Method checks if the GSM module is registered in the GSM net
- - this method communicates directly with the GSM module
- in contrast to the method IsRegistered() which reads the
- flag from the module_status (this flag is set inside this method)
-
- - must be called regularly - from 1sec. to cca. 10 sec.
-
- return values:
- REG_NOT_REGISTERED  - not registered
- REG_REGISTERED      - GSM module is registered
- REG_NO_RESPONSE     - GSM doesn't response
- REG_COMM_LINE_BUSY  - comm line between GSM module and Arduino is not free
- for communication
- **********************************************************/
-byte GSM::CheckRegistration(void) {
-	byte status;
-	//byte ret_val = REG_NOT_REGISTERED;
-	byte ret_val = -1;
-	_cell.begin(9600);
-	if (CLS_FREE != GetCommLineStatus())
-		return (REG_COMM_LINE_BUSY);
-	SetCommLineStatus(CLS_ATCMD);
-	_cell.println(F("AT+CREG?"));
-	// 5 sec. for initial comm tmout
-	// 50 msec. for inter character timeout
-	status = WaitResp(5000, 50);
-
-	if (status == RX_FINISHED) {
-		_cell.printError("something recieved");
-		_cell.printError((char*) comm_buf);
-		// something was received but what was received?
-		// ---------------------------------------------
-		if (IsStringReceived("+CREG: 0,1") || IsStringReceived("+CREG: 0,5")) {
-			// it means module is registered
-			// ----------------------------
-			module_status |= STATUS_REGISTERED;
-
-			// in case GSM module is registered first time after reset
-			// sets flag STATUS_INITIALIZED
-			// it is used for sending some init commands which
-			// must be sent only after registration
-			// --------------------------------------------
-			if (!IsInitialized()) {
-				module_status |= STATUS_INITIALIZED;
-				SetCommLineStatus(CLS_FREE);
-				InitParam(PARAM_SET_1);
-			}
-			_cell.printError("gsm registered");
-			ret_val = REG_REGISTERED;
-		} else {
-			_cell.printError("not registered");
-			// NOT registered
-			// --------------
-			module_status &= ~STATUS_REGISTERED;
-			ret_val = REG_NOT_REGISTERED;
-		}
-	} else {
-		// nothing was received
-		// --------------------
-		ret_val = REG_NO_RESPONSE;
-	}
-	SetCommLineStatus(CLS_FREE);
-
-//	_cell.end();
-//	Serial.begin(9600);
-//	delay(1000);
-//	Serial.println(ret_val);
-	return (ret_val);
 }
 
 /**********************************************************
@@ -544,28 +422,6 @@ byte GSM::CheckRegistration(void) {
  return (ret_val);
  }
  */
-
-/**********************************************************
- Method returns state of user button
-
-
- return: 0 - not pushed = released
- 1 - pushed
- **********************************************************/
-byte GSM::IsUserButtonPushed(void) {
-	byte ret_val = 0;
-	if (CLS_FREE != GetCommLineStatus())
-		return (0);
-	SetCommLineStatus(CLS_ATCMD);
-	//if (AT_RESP_OK == SendATCmdWaitResp("AT#GPIO=9,2", 500, 50, "#GPIO: 0,0", 1)) {
-	// user button is pushed
-	//  ret_val = 1;
-	//}
-	//else ret_val = 0;
-	//SetCommLineStatus(CLS_FREE);
-	//return (ret_val);
-}
-
 /**********************************************************
  Method reads phone number string from specified SIM position
 
@@ -607,7 +463,7 @@ byte GSM::IsUserButtonPushed(void) {
  }
  **********************************************************/
 
-char GSM::GetPhoneNumber(byte position, char *phone_number) {
+char SIMCOM900::GetPhoneNumber(byte position, char *phone_number) {
 	char ret_val = -1;
 	char *p_char;
 	char *p_char1;
@@ -685,7 +541,7 @@ char GSM::GetPhoneNumber(byte position, char *phone_number) {
  0 - phone number was not written
  1 - phone number was written
  **********************************************************/
-char GSM::WritePhoneNumber(byte position, char *phone_number) {
+char SIMCOM900::WritePhoneNumber(byte position, char *phone_number) {
 	char ret_val = -1;
 
 	if (position == 0)
@@ -742,7 +598,7 @@ char GSM::WritePhoneNumber(byte position, char *phone_number) {
  0 - phone number was not deleted
  1 - phone number was deleted
  **********************************************************/
-char GSM::DelPhoneNumber(byte position) {
+char SIMCOM900::DelPhoneNumber(byte position) {
 	char ret_val = -1;
 
 	if (position == 0)
@@ -813,7 +669,7 @@ char GSM::DelPhoneNumber(byte position) {
  #endif
  }
  **********************************************************/
-char GSM::ComparePhoneNumber(byte position, char *phone_number) {
+char SIMCOM900::ComparePhoneNumber(byte position, char *phone_number) {
 	char ret_val = -1;
 	char sim_phone_number[20];
 
@@ -861,7 +717,7 @@ char GSM::ComparePhoneNumber(byte position, char *phone_number) {
  GSM gsm;
  gsm.SendSMS("00XXXYYYYYYYYY", "SMS text");
  **********************************************************/
-char GSM::sendSMS(char *number_str, char *message_str) {
+char SIMCOM900::sendSMS(char *number_str, char *message_str) {
 	_cell.begin(9600);
 	if (strlen(message_str) > 159)
 		Serial.println(F("Don't send message longer than 160 characters"));
@@ -950,7 +806,7 @@ char GSM::sendSMS(char *number_str, char *message_str) {
  #endif
  }
  **********************************************************/
-char GSM::getSMS(byte position, char *phone_number, char *SMS_text,
+char SIMCOM900::getSMS(byte position, char *phone_number, char *SMS_text,
 		byte max_SMS_len) {
 	char ret_val = -1;
 	char *p_char;
@@ -1112,7 +968,7 @@ char GSM::getSMS(byte position, char *phone_number, char *SMS_text,
  // and SMS text in sms_text
  }
  **********************************************************/
-char GSM::isSMSPresent(byte required_status) {
+char SIMCOM900::isSMSPresent(byte required_status) {
 
 	_cell.begin(9600);
 	char ret_val = -1;

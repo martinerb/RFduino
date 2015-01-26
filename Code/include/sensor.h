@@ -1,6 +1,9 @@
 #ifndef SENSOR
 #define SENSOR
 
-void readTemperature();
+
+float readTemperature();
+void initADC();
+int readADC();
 
 #endif /* SENSOR */

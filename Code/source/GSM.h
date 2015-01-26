@@ -1,11 +1,7 @@
 #ifndef GSM_H
 #define GSM_H
 
-#define MEGA
 #include "HWSerial.h"
-//#include <inttypes.h>
-//#include "WideTextFinder.h"
-
 
 #define ctrlz 26 //Ascii character for ctr+z. End of a SMS.
 #define cr    13 //Ascii character for carriage return.
@@ -197,7 +193,11 @@ public:
          uint8_t no_of_attempts);
      void Echo(uint8_t state);
 
-
+     // returns registration state
+     uint8_t IsRegistered(void);
+     // returns whether complete initialization was made
+     uint8_t IsInitialized(void);
+     //-----------------------
      //-----------------------
      // turns off/on the speaker
      void SetSpeaker(uint8_t off_on);
@@ -205,33 +205,8 @@ public:
      // must be called regularly
      uint8_t CheckRegistration(void);
 
-     // User button methods
-     inline uint8_t IsUserButtonEnable(void) {
-          return (module_status & STATUS_USER_BUTTON_ENABLE);
-     };
-     inline void DisableUserButton(void) {
-          module_status &= ~STATUS_USER_BUTTON_ENABLE;
-     };
-     inline void EnableUserButton(void) {
-          module_status |= STATUS_USER_BUTTON_ENABLE;
-     };
-     uint8_t IsUserButtonPushed(void);
-
-     // Phonebook's methods
-     char GetPhoneNumber(uint8_t position, char *phone_number);
-     char WritePhoneNumber(uint8_t position, char *phone_number);
-     char DelPhoneNumber(uint8_t position);
-     char ComparePhoneNumber(uint8_t position, char *phone_number);
-
-     // returns registration state
-     uint8_t IsRegistered(void);
-     // returns whether complete initialization was made
-     uint8_t IsInitialized(void);
-     //-----------------------
-     char sendSMS(char *number_str, char *message_str);
-     char getSMS(byte position, char *phone_number, char *SMS_text, byte max_SMS_len);
-     char isSMSPresent(byte required_status);
      int setPIN(char *pin);
+
 };
 
 #endif

@@ -24,9 +24,9 @@
 #include "Arduino.h"
 #include "variant.h"
 
-
 typedef struct {
 	fcn_ptr command;
+	bool exit_shell;
 	char command_name[24];
 	char* help_text;
 } command_struct;
@@ -39,7 +39,7 @@ void helpOutput();
 void shell() {
 
 	char* help_test = "print a helpoutput for all commands\n";
-	addNewCommand(helpOutput, "help", help_test);
+	addNewCommand(helpOutput, "help", help_test,false);
 	Serial.println("Starting Shell!!");
 
 	char* shell_prompt = "cmd> ";
@@ -75,6 +75,8 @@ void shell() {
 		} else {
 			while (counter < commandcounter) {
 				if (strcmp(input, allcommands[counter].command_name) == 0) {
+					if (allcommands[counter].exit_shell == true)
+						exit = 0;
 					allcommands[counter].command();
 					command_to_execute = 1;
 					break;
@@ -94,8 +96,9 @@ void shell() {
 }
 
 void addNewCommand(fcn_ptr function_pointer, char command_name[24],
-		char* help_text) {
+		char* help_text, bool exit_shell) {
 	allcommands[commandcounter].command = function_pointer;
+	allcommands[commandcounter].exit_shell = exit_shell;
 	int i;
 	for (i = 0; i < 24; i++) {
 		allcommands[commandcounter].command_name[i] = command_name[i];

@@ -27,8 +27,7 @@
 typedef void (*fcn_ptr)(void);
 
 extern void shell();
-extern void addNewCommand(fcn_ptr function_pointer, char command_name[COMMANDLENGTH],char* help_text);
-
-
+extern void addNewCommand(fcn_ptr function_pointer,
+		char command_name[COMMANDLENGTH], char* help_text, bool exit_shell);
 
 #endif /* SHELL_H */

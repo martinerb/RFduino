@@ -1,6 +1,5 @@
 #ifndef SIMCOM900_H
 #define SIMCOM900_H
-//#include <SoftwareSerial.h>
 #include "GSM.h"
 #include "HardwareSerial.h"
 class SIMCOM900 : public virtual GSM {
@@ -26,14 +25,17 @@ public:
      int readCellData(int &mcc, int &mnc, long &lac, long &cellid);
      void SimpleRead();
      void WhileSimpleRead();
-     /*void SimpleWrite(char *comm);
-     void SimpleWrite(char const *comm);
-     void SimpleWrite(int comm);
-     void SimpleWrite(const __FlashStringHelper *pgmstr);
-     void SimpleWriteln(char *comm);
-     void SimpleWriteln(char const *comm);
-     void SimpleWriteln(const __FlashStringHelper *pgmstr);
-     void SimpleWriteln(int comm);*/
+
+     char sendSMS(char *number_str, char *message_str);
+     // Phonebook's methods
+     char GetPhoneNumber(uint8_t position, char *phone_number);
+     char WritePhoneNumber(uint8_t position, char *phone_number);
+     char DelPhoneNumber(uint8_t position);
+     char ComparePhoneNumber(uint8_t position, char *phone_number);
+     char getSMS(byte position, char *phone_number, char *SMS_text, byte max_SMS_len);
+     char isSMSPresent(byte required_status);
+
+
 };
 
 extern SIMCOM900 gsm;

@@ -473,3 +473,121 @@ int GSM::isIP(const char* cadena) {
 	return 1;
 }
 
+//---------------------------------------------
+/**********************************************************
+ Turns on/off the speaker
+
+ off_on: 0 - off
+ 1 - on
+ **********************************************************/
+void GSM::SetSpeaker(byte off_on) {
+	if (CLS_FREE != GetCommLineStatus())
+		return;
+	SetCommLineStatus(CLS_ATCMD);
+	if (off_on) {
+		//SendATCmdWaitResp("AT#GPIO=5,1,2", 500, 50, "#GPIO:", 1);
+	} else {
+		//SendATCmdWaitResp("AT#GPIO=5,0,2", 500, 50, "#GPIO:", 1);
+	}
+	SetCommLineStatus(CLS_FREE);
+}
+
+byte GSM::IsRegistered(void) {
+	return (module_status & STATUS_REGISTERED);
+}
+
+byte GSM::IsInitialized(void) {
+	return (module_status & STATUS_INITIALIZED);
+}
+
+/**********************************************************
+ Method checks if the GSM module is registered in the GSM net
+ - this method communicates directly with the GSM module
+ in contrast to the method IsRegistered() which reads the
+ flag from the module_status (this flag is set inside this method)
+
+ - must be called regularly - from 1sec. to cca. 10 sec.
+
+ return values:
+ REG_NOT_REGISTERED  - not registered
+ REG_REGISTERED      - GSM module is registered
+ REG_NO_RESPONSE     - GSM doesn't response
+ REG_COMM_LINE_BUSY  - comm line between GSM module and Arduino is not free
+ for communication
+ **********************************************************/
+byte GSM::CheckRegistration(void) {
+	byte status;
+	//byte ret_val = REG_NOT_REGISTERED;
+	byte ret_val = -1;
+	_cell.begin(9600);
+	if (CLS_FREE != GetCommLineStatus())
+		return (REG_COMM_LINE_BUSY);
+	SetCommLineStatus(CLS_ATCMD);
+	_cell.println(F("AT+CREG?"));
+	// 5 sec. for initial comm tmout
+	// 50 msec. for inter character timeout
+	status = WaitResp(5000, 50);
+
+	if (status == RX_FINISHED) {
+		_cell.printError("something recieved");
+		_cell.printError((char*) comm_buf);
+		// something was received but what was received?
+		// ---------------------------------------------
+		if (IsStringReceived("+CREG: 0,1") || IsStringReceived("+CREG: 0,5")) {
+			// it means module is registered
+			// ----------------------------
+			module_status |= STATUS_REGISTERED;
+
+			// in case GSM module is registered first time after reset
+			// sets flag STATUS_INITIALIZED
+			// it is used for sending some init commands which
+			// must be sent only after registration
+			// --------------------------------------------
+			if (!IsInitialized()) {
+				module_status |= STATUS_INITIALIZED;
+				SetCommLineStatus(CLS_FREE);
+				InitParam(PARAM_SET_1);
+			}
+			_cell.printError("gsm registered");
+			ret_val = REG_REGISTERED;
+		} else {
+			_cell.printError("not registered");
+			// NOT registered
+			// --------------
+			module_status &= ~STATUS_REGISTERED;
+			ret_val = REG_NOT_REGISTERED;
+		}
+	} else {
+		// nothing was received
+		// --------------------
+		ret_val = REG_NO_RESPONSE;
+	}
+	SetCommLineStatus(CLS_FREE);
+
+//	_cell.end();
+//	Serial.begin(9600);
+//	delay(1000);
+//	Serial.println(ret_val);
+	return (ret_val);
+}
+
+int GSM::setPIN(char *pin) {
+	//Status = READY or ATTACHED.
+	if ((getStatus() != IDLE))
+		return 2;
+
+	//AT command to set PIN.
+	_cell.begin(9600);
+	_cell.print(F("AT+CPIN="));
+	_cell.println(pin);
+	//SimpleWrite(F("AT+CPIN="));
+	//SimpleWriteln(pin);
+
+	//Expect str_ok.
+
+	if (WaitResp(5000, 50, str_ok) != RX_FINISHED_STR_NOT_RECV)
+		return 0;
+	else
+		return 1;
+}
+

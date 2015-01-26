@@ -50,7 +50,7 @@ typedef enum
   DEVICE5,
   DEVICE6,
   DEVICE7,
-  HOSTDEVICE,
+  HOST,
 	NOTDEFINED
 } device_t;
 
