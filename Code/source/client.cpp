@@ -21,11 +21,14 @@ Clientclass::Clientclass(bool ble_enable, device_t device) {
 		RFduinoBLE.txPowerLevel = -20;
 		RFduinoBLE.advertisementData = "data";
 		RFduinoBLE.advertisementInterval = 675;
+		//RFduinoBLE.advertisementInterval = 1500;
 		RFduinoBLE.connectable = true;
 		RFduinoBLE.deviceName = "mydeviceName";
 		RFduinoBLE.begin();
 	} else {
+		RFduinoGZLL.txPowerLevel = -20;
 		RFduinoGZLL.begin(device);
+
 	}
 }
 
@@ -57,12 +60,17 @@ void Clientclass::setRSSI(int rssi) {
 }
 
 void Clientclass::sendBLE(char* data, int len) {
+	Serial.println("OS");
+//	Serial.println("start to send over BLE");
+	if (!RFduinoBLE.send(data, len)) {
 
-	Serial.println("start to send over BLE");
-	if (!RFduinoBLE.send(data, len))
-		Serial.println("could not send data");
-	else
-		Serial.println("BLE data send");
+	}
+	//	Serial.println("BLE data send");
+	else {
+
+	}
+
+	//Serial.println("could not send data");
 }
 
 void Clientclass::setError(String t) {
@@ -95,6 +103,13 @@ bool Clientclass::getTransactionActive() {
 	return transaction_active_;
 }
 
+void Clientclass::setTransactionFinish(bool ta) {
+	client_transaction_finish = ta;
+}
+bool Clientclass::getTransactionFinish() {
+	return client_transaction_finish;
+}
+
 int Clientclass::decTransactionCount() {
 	transaction_count_--;
 	return transaction_count_;
@@ -108,29 +123,36 @@ int Clientclass::getTransactionCount() {
 void RFduinoBLE_onAdvertisement(bool start) {
 
 	if (start)
-		Serial.println("onAdvertisement ON");
+//		Serial.println("onAdvertisement ON");
+		Serial.println("ONADV");
 	else
-		Serial.println("onAdvertisement OFF");
+		Serial.println("OFFADV");
+		//Serial.println("onAdvertisement OFF");
 }
 
 void RFduinoBLE_onConnect() {
-	Serial.println("have connected");
-	RFduinoBLE.send("connected", 9);
+	Serial.println("OCON");
+//	Serial.println("have connected");
+	//RFduinoBLE.send("connected", 9);
 }
 
 void RFduinoBLE_onDisconnect() {
-	Serial.println("have disconnected");
+	Serial.println("ODC");
+	//Serial.println("have disconnected");
 }
 
 void RFduinoBLE_onReceive(char *data, int len) {
-	Serial.printf("arecieved string with len = %d\n\r", len);
-	//delay(1000);
-	//client_.switchConnection(HOSTDEVICE);
-	//delay(1000);
-	//RFduinoGZLL_send_to_device(DEVICE0,"tempvalue",9);
-	//Serial.printf("check");
-	//delay(10000);
-	//client_.switchConnection(NOTDEFINED);
+	//Serial.printf("arecieved string with len = %d\n\r", len);
+	///delay(1000);
+	Serial.println("Oreceive");
+	int leng = 10;
+	char buf[leng];
+	char ch = 'A';
+	for (int i = 0; i < leng; i++) {
+		buf[i] = ch;
+		ch++;
+	}
+	client_.sendBLE(buf, leng);
 //	Serial.println(client_.getRSSI());
 
 }
@@ -164,6 +186,7 @@ void RFduinoGZLL_onReceive(device_t device, int rssi, char *data, int len) {
 //					String("recieved prot: ") + String(protocol) + String("data")
 //							+ String(cp));
 			if (protocol[0] == 'g') {
+				Serial.println("OHS");
 				client_.setError(String("client want to send data-send temp"));
 				RFduinoGZLL.sendToDevice(device, "t?");
 			} else if ((protocol[0] == 't') && (protocol[1] == '!')) {
@@ -180,29 +203,32 @@ void RFduinoGZLL_onReceive(device_t device, int rssi, char *data, int len) {
 				RFduinoGZLL.sendToDevice(device, "f?");
 				if (client_.decTransactionCount() == 0) {
 					client_.setTransactionActive(false);
+					//RFduinoGZLL.end();
 				}
 
 			}
 		}
 	} else {
 		if (len > 0) {
-			client_.setError(
-					String("recieved prot: ") + String(protocol) + String("data")
-							+ String(cp));
+			//client_.setError(
+				//	String("recieved prot: ") + String(protocol) + String("data")
+				//			+ String(cp));
 			if ((protocol[0] == 't') && (protocol[1] == '?')) {
-				client_.setError(String("host want to recieve temp"));
-				int temp = 123;
+				client_.setError(String("host want to recieve temp\r\n"));
+				int temp = 321;
 				//int temp = 321;
 				RFduinoGZLL.sendToHost(String("t!") + String(temp));
 			} else if ((protocol[0] == 'a') && (protocol[1] == '?')) {
-				client_.setError(String("host want to recieve adc"));
-				int adc = 12345678;
+				client_.setError(String("host want to recieve adc\r\n"));
+				int adc = 456;
 				//int adc = 87654321;
 				RFduinoGZLL.sendToHost(String("a!") + String(adc));
 			} else if ((protocol[0] == 'f') && (protocol[1] == '?')) {
-				client_.setError(String("transaction finish now"));
+				client_.setError(String("transaction finish now\r\n"));
 				client_.setTransactionActive(false);
-				Serial.println("END: send");
+				//Serial.println("END: send");
+				client_.setTransactionFinish(true);
+				RFduinoGZLL.end();
 			}
 		} else {
 //			client_.setError(String("len=0"));

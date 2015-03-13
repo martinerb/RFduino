@@ -2,7 +2,7 @@
 //#ifdef MEGA
 
 void HWSerial::begin(int baud_rate){
-	Serial.println("HWSerial::begin!");
+	//Serial.println("HWSerial::begin!");
 	Serial.end();
 	hw_baudrate = baud_rate;
 	Serial.begin(baud_rate,HW_SERIAL_RX,HW_SERIAL_TX);

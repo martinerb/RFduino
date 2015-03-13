@@ -7,7 +7,7 @@
 #include "variant.h"
 #include "Arduino.h"
 
-#define NODENUMBER 2
+#define NODENUMBER 1
 class Clientclass: public virtual RFduinoGZLLClass {
 private:
 
@@ -18,6 +18,8 @@ private:
 	String adc_value_[NODENUMBER];
 	String temp_value_[NODENUMBER];
 	bool transaction_active_ = false;
+	bool client_transaction_finish = false;
+
 	int transaction_count_ = NODENUMBER;
 
 public:
@@ -37,8 +39,13 @@ public:
 	void setAdcValue(String value, int node);
 	bool getTransactionActive();
 	void setTransactionActive(bool ta);
+	bool getTransactionFinish();
+	void setTransactionFinish(bool ta);
+
 	int getTransactionCount();
 	int decTransactionCount();
+
+
 
 };
 extern Clientclass client_;

@@ -4,6 +4,7 @@
 #include "Arduino.h"
 #include "RFduinoGZLL.h"
 #include "ads1231.h"
+#include "config.h"
 
 // get a cpu temperature sample
 // degrees c (-198.00 to +260.00)
@@ -17,28 +18,28 @@ float readTemperature() {
 }
 
 void initADC() {
-	ads1231_init();
+//power supply over pin 5(GND) and 6(VDD)
 	pinMode(6, OUTPUT);
 	pinMode(5, OUTPUT);
 	digitalWrite(5, LOW);
 	digitalWrite(6, HIGH);
+	delay(100);
+	ads1231_init();
 }
+
+void ADCPowerDown(){
+	Serial.println("start power down mode");
+	digitalWrite(ADS1231_PWDN, LOW);
+}
+
 
 int readADC() {
 	int weight = 0;
-	long int val = 0;
 	int ret = 0, weight_const = 0;
-//ads1231_get_grams(weight);
-	ret = ads1231_get_value(val);
-	Serial.printf("return get value : %d\r\n", ret);
-
-	ret = ads1231_get_grams(weight);
-	Serial.printf("return get gramms : %d\r\n", ret);
-	Serial.printf("return get const : %d\r\n", ret);
-	Serial.printf("get_value %x", val);
-	Serial.println("");
-	Serial.printf("get_grams %d", weight);
-
+	//Serial.println("OADCS");
+	ret=ads1231_get_grams(weight);
+	Serial.printf("get_value %d\n\r", weight);
+	//Serial.println("OADCE");
 	return weight;
 }
 

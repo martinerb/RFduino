@@ -27,6 +27,8 @@ CXXFLAGS ?= -std=c99 -c -g -Os -w -ffunction-sections -fdata-sections -fno-rtti 
 CFLAGS ?= -std=c99 -c -g -Os -w -ffunction-sections -fdata-sections -fno-builtin -mcpu=$(CPU) -DF_CPU=$(FREQ) -DARDUINO=158 -mthumb -D__RFduino__
 ARFLAGS ?= rcs
 
+
+
 CXXTAR =  $(patsubst $(SOURCE)%.cpp,$(BUILD)%.o,$(wildcard $(SOURCE)*.cpp))
 CTAR =  $(patsubst $(SOURCE)%.c,$(BUILD)%.o,$(wildcard $(SOURCE)*.c))
 CXXCORE = $(patsubst $(CORE)%.cpp,$(BUILD)%.o,$(wildcard $(CORE)*.cpp))
@@ -43,11 +45,11 @@ $(BUILD)%.o: $(CORE)%.cpp
 	
 $(BUILD)%.o: $(SOURCE)%.cpp 
 	$(CPATH)$(CXXCOMPILER) $(CXXFLAGS) -c -o $@ $< -I$(CORE) -I$(CORE)system/ -I$(CMSIS) -I$(INCLUDE)
-
-$(BUILD)%.o: $(SOURCE)%.c
-	$(CPATH)$(CCOMPILER) $(CFLAGS) -c -o $@ $< -I$(CORE) -I$(CORE)system/ -I$(CMSIS) -I$(INCLUDE)
 	
 $(BUILD)%.o: $(CORE)%.c
+	$(CPATH)$(CCOMPILER) $(CFLAGS) -c -o $@ $< -I$(CORE) -I$(CORE)system/ -I$(CMSIS) -I$(INCLUDE)
+	
+$(BUILD)%.o: $(SOURCE)%.c
 	$(CPATH)$(CCOMPILER) $(CFLAGS) -c -o $@ $< -I$(CORE) -I$(CORE)system/ -I$(CMSIS) -I$(INCLUDE)
 	
 afiles:

@@ -749,6 +749,7 @@ char SIMCOM900::sendSMS(char *number_str, char *message_str) {
 			_cell.flush(); // erase rx circular buffer
 			if (RX_FINISHED_STR_RECV == gsm.WaitResp(7000, 5000, "+CMGS")) {
 				// SMS was send correctly
+				Serial.println(F("SMS was send correctly"));
 				ret_val = 1;
 				break;
 			} else

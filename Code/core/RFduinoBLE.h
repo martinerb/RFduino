@@ -39,10 +39,10 @@ public:
   // default "" (previous fixed RFduino uuid)
   const char *customUUID;
 
-  // default "RFduino"
+
   const char *deviceName;
 
-  // default "sketch"
+
   const char *advertisementData;
 
   bool iBeacon;

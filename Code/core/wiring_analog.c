@@ -259,202 +259,202 @@ static void TIMER2_Interrupt(void)
 	NRF_TIMER2->EVENTS_COMPARE[3] = 0;
 }
 
-void analogWrite(uint32_t ulPin, uint32_t ulValue) {
-
-  if (ulValue == 0)
-  {
-    digitalWrite(ulPin, LOW);
-    return;
-  }
-
-  if (ulValue == 255)
-  {
-    digitalWrite(ulPin, HIGH);
-    return;
-  }
-
-	if (Timer1_Compare_Unit_Occupied_by_Pin[0] == ulPin)
-	{
-		update_PWM_value(ulPin, ulValue, 0);
-	}
-	else if (Timer1_Compare_Unit_Occupied_by_Pin[1] == ulPin)
-	{
-		update_PWM_value(ulPin, ulValue, 1);
-	}
-	else if (Timer1_Compare_Unit_Occupied_by_Pin[2] == ulPin)
-	{
-		update_PWM_value(ulPin, ulValue, 2);
-	}
-	else if (Timer2_Compare_Unit_Occupied_by_Pin[0] == ulPin)
-	{
-		update_PWM_value(ulPin, ulValue, 3);
-	}
-	else
-	{
-		if ((Timer1_Compare_Unit_Occupied_by_Pin[0] == 255) && (Timer1_Compare_Unit_Occupied_by_Pin[1] == 255) && (Timer1_Compare_Unit_Occupied_by_Pin[2] == 255))
-		{
-			// Timer1 is not used: need to initialize it
-
-			// Configure ulPin as output
-      digitalWrite(ulPin, LOW);
-			pinMode(ulPin, OUTPUT);
-
-			if (ulValue > 0)
-			{
-				// Configure GPIOTE channel "gpiote_channel" to toggle the PWM pin state
-				// Note that we can only connect one GPIOTE task to an output pin
-				nrf_gpiote_task_config(0, ulPin, NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
-			}
-			GPIOTE_Channels_Occupied[ulPin] = 0;
-
-			NRF_TIMER1->TASKS_STOP = 1;
-			NRF_TIMER1->MODE = TIMER_MODE_MODE_Timer;
-			//NRF_TIMER1->PRESCALER = 6; // Source clock frequency is divided by 2^6 = 64
-			NRF_TIMER1->PRESCALER = 0; // Source clock frequency is divided by 2^6 = 64 /////////////////////////////////////////
-			//NRF_TIMER1->BITMODE = TIMER_BITMODE_BITMODE_08Bit;
-			NRF_TIMER1->BITMODE = TIMER_BITMODE_BITMODE_16Bit;	////////////////////////////
-			// Clears the timer, sets it to 0
-			NRF_TIMER1->TASKS_CLEAR = 1;
-			NRF_TIMER1->CC[0] = (2^PWM_RESOLUTION - 1);
-			NRF_TIMER1->CC[1] = (2^PWM_RESOLUTION - 1);
-			NRF_TIMER1->CC[2] = (2^PWM_RESOLUTION - 1);
-			NRF_TIMER1->CC[3] = 0;
-			NRF_TIMER1->EVENTS_COMPARE[0] = 0;
-			NRF_TIMER1->EVENTS_COMPARE[1] = 0;
-			NRF_TIMER1->EVENTS_COMPARE[2] = 0;
-			NRF_TIMER1->EVENTS_COMPARE[3] = 0;
-			// Interrupt setup
-			NRF_TIMER1->INTENSET = (TIMER_INTENSET_COMPARE3_Enabled << TIMER_INTENSET_COMPARE3_Pos);
-      attachInterrupt(TIMER1_IRQn, TIMER1_Interrupt);
-
-			// Start clock
-			NRF_TIMER1->TASKS_START = 1;
-
-			turn_On_PPI_to_GPIO_for_PWM(ulPin, 0, NRF_TIMER1, 0);
-
-			PWM_Channels_Value[0] = (2^PWM_RESOLUTION - 1) - mapResolution(ulValue, _writeResolution, PWM_RESOLUTION);
-			Timer1_Compare_Unit_Occupied_by_Pin[0] = ulPin;
-			Pin_Occupied_for_PWM[ulPin] = 1;
-		}
-		else
-		{
-			if (Timer1_Compare_Unit_Occupied_by_Pin[0] == 255)
-			{
-				// Configure ulPin as output
-        digitalWrite(ulPin, LOW);
-				pinMode(ulPin, OUTPUT);
-				if (ulValue > 0)
-				{
-					// Configure GPIOTE channel "gpiote_channel" to toggle the PWM pin state
-					// Note that we can only connect one GPIOTE task to an output pin
-					nrf_gpiote_task_config(0, ulPin, NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
-				}
-				GPIOTE_Channels_Occupied[ulPin] = 0;
-				turn_On_PPI_to_GPIO_for_PWM(ulPin, 0, NRF_TIMER1, 0);
-				PWM_Channels_Value[0] = (2^PWM_RESOLUTION - 1) - mapResolution(ulValue, _writeResolution, PWM_RESOLUTION);
-				Timer1_Compare_Unit_Occupied_by_Pin[0] = ulPin;
-				Pin_Occupied_for_PWM[ulPin] = 1;
-				NRF_TIMER1->EVENTS_COMPARE[0] = 0;
-			}
-			else if (Timer1_Compare_Unit_Occupied_by_Pin[1] == 255)
-			{
-				// Configure ulPin as output
-        digitalWrite(ulPin, LOW);
-				pinMode(ulPin, OUTPUT);
-				if (ulValue > 0)
-				{
-					// Configure GPIOTE channel "gpiote_channel" to toggle the PWM pin state
-					// Note that we can only connect one GPIOTE task to an output pin
-					nrf_gpiote_task_config(1, ulPin, NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
-				}
-				GPIOTE_Channels_Occupied[ulPin] = 1;
-				turn_On_PPI_to_GPIO_for_PWM(ulPin, 1, NRF_TIMER1, 1);
-				PWM_Channels_Value[1] = (2^PWM_RESOLUTION - 1) - mapResolution(ulValue, _writeResolution, PWM_RESOLUTION);
-				Timer1_Compare_Unit_Occupied_by_Pin[1] = ulPin;
-				Pin_Occupied_for_PWM[ulPin] = 1;
-				NRF_TIMER1->EVENTS_COMPARE[1] = 0;
-			}
-			else if (Timer1_Compare_Unit_Occupied_by_Pin[2] == 255)
-			{
-				// Configure ulPin as output
-        digitalWrite(ulPin, LOW);
-				pinMode(ulPin, OUTPUT);
-				if (ulValue > 0)
-				{
-					// Configure GPIOTE channel "gpiote_channel" to toggle the PWM pin state
-					// Note that we can only connect one GPIOTE task to an output pin
-					nrf_gpiote_task_config(2, ulPin, NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
-				}
-				GPIOTE_Channels_Occupied[ulPin] = 2;
-				turn_On_PPI_to_GPIO_for_PWM(ulPin, 2, NRF_TIMER1, 2);
-				PWM_Channels_Value[2] = (2^PWM_RESOLUTION - 1) - mapResolution(ulValue, _writeResolution, PWM_RESOLUTION);
-				Timer1_Compare_Unit_Occupied_by_Pin[2] = ulPin;
-				Pin_Occupied_for_PWM[ulPin] = 1;
-				NRF_TIMER1->EVENTS_COMPARE[2] = 0;
-			}
-			else
-			{
-				// All channels of Timer1 is occupied, need to use Timer2
-				if (!RFduinoGZLL_used && Timer2_Compare_Unit_Occupied_by_Pin[0] == 255)
-				{
-					// Timer2 is not used: need to initialize it
-
-					// Configure ulPin as output
-          digitalWrite(ulPin, LOW);
-					pinMode(ulPin, OUTPUT);
-
-					if (ulValue > 0)
-					{
-						// Configure GPIOTE channel "gpiote_channel" to toggle the PWM pin state
-						// Note that we can only connect one GPIOTE task to an output pin
-						nrf_gpiote_task_config(3, ulPin, NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
-					}
-					GPIOTE_Channels_Occupied[ulPin] = 3;
-
-					NRF_TIMER2->TASKS_STOP = 1;
-					NRF_TIMER2->MODE = TIMER_MODE_MODE_Timer;
-					//NRF_TIMER2->PRESCALER = 6; // Source clock frequency is divided by 2^6 = 64
-					NRF_TIMER2->PRESCALER = 0; // Source clock frequency is divided by 2^6 = 64 /////////////////////////////////////////
-					//NRF_TIMER2->BITMODE = TIMER_BITMODE_BITMODE_08Bit;
-					NRF_TIMER2->BITMODE = TIMER_BITMODE_BITMODE_16Bit;	////////////////////////////
-					// Clears the timer, sets it to 0
-					NRF_TIMER2->TASKS_CLEAR = 1;
-					NRF_TIMER2->CC[0] = (2^PWM_RESOLUTION - 1);
-					NRF_TIMER2->CC[3] = 0;
-					NRF_TIMER2->EVENTS_COMPARE[0] = 0;
-					NRF_TIMER2->EVENTS_COMPARE[3] = 0;
-
-					// Interrupt setup
-					NRF_TIMER2->INTENSET = (TIMER_INTENSET_COMPARE3_Enabled << TIMER_INTENSET_COMPARE3_Pos);
-          attachInterrupt(TIMER2_IRQn, TIMER2_Interrupt);
-
-					// Start clock
-					NRF_TIMER2->TASKS_START = 1;
-
-					turn_On_PPI_to_GPIO_for_PWM(ulPin, 3, NRF_TIMER2, 0);
-
-					PWM_Channels_Value[3] = (2^PWM_RESOLUTION - 1) - mapResolution(ulValue, _writeResolution, PWM_RESOLUTION);
-					Timer2_Compare_Unit_Occupied_by_Pin[0] = ulPin;
-					Pin_Occupied_for_PWM[ulPin] = 1;
-				}
-				else
-				{
-					// Using all 4 TASK channels of GPIOTE, it is not possible to add another PWM channel.
-				}
-			}
-		}
-	}
-
-/*
-	// Defaults to digital write
-	pinMode(ulPin, OUTPUT);
-	ulValue = mapResolution(ulValue, _writeResolution, 8);
-	if (ulValue < 128)
-		digitalWrite(ulPin, LOW);
-	else
-		digitalWrite(ulPin, HIGH);
-*/
-}
+//void analogWrite(uint32_t ulPin, uint32_t ulValue) {
+//
+//  if (ulValue == 0)
+//  {
+//    digitalWrite(ulPin, LOW);
+//    return;
+//  }
+//
+//  if (ulValue == 255)
+//  {
+//    digitalWrite(ulPin, HIGH);
+//    return;
+//  }
+//
+//	if (Timer1_Compare_Unit_Occupied_by_Pin[0] == ulPin)
+//	{
+//		update_PWM_value(ulPin, ulValue, 0);
+//	}
+//	else if (Timer1_Compare_Unit_Occupied_by_Pin[1] == ulPin)
+//	{
+//		update_PWM_value(ulPin, ulValue, 1);
+//	}
+//	else if (Timer1_Compare_Unit_Occupied_by_Pin[2] == ulPin)
+//	{
+//		update_PWM_value(ulPin, ulValue, 2);
+//	}
+//	else if (Timer2_Compare_Unit_Occupied_by_Pin[0] == ulPin)
+//	{
+//		update_PWM_value(ulPin, ulValue, 3);
+//	}
+//	else
+//	{
+//		if ((Timer1_Compare_Unit_Occupied_by_Pin[0] == 255) && (Timer1_Compare_Unit_Occupied_by_Pin[1] == 255) && (Timer1_Compare_Unit_Occupied_by_Pin[2] == 255))
+//		{
+//			// Timer1 is not used: need to initialize it
+//
+//			// Configure ulPin as output
+//      digitalWrite(ulPin, LOW);
+//			pinMode(ulPin, OUTPUT);
+//
+//			if (ulValue > 0)
+//			{
+//				// Configure GPIOTE channel "gpiote_channel" to toggle the PWM pin state
+//				// Note that we can only connect one GPIOTE task to an output pin
+//				nrf_gpiote_task_config(0, ulPin, NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
+//			}
+//			GPIOTE_Channels_Occupied[ulPin] = 0;
+//
+//			NRF_TIMER1->TASKS_STOP = 1;
+//			NRF_TIMER1->MODE = TIMER_MODE_MODE_Timer;
+//			//NRF_TIMER1->PRESCALER = 6; // Source clock frequency is divided by 2^6 = 64
+//			NRF_TIMER1->PRESCALER = 0; // Source clock frequency is divided by 2^6 = 64 /////////////////////////////////////////
+//			//NRF_TIMER1->BITMODE = TIMER_BITMODE_BITMODE_08Bit;
+//			NRF_TIMER1->BITMODE = TIMER_BITMODE_BITMODE_16Bit;	////////////////////////////
+//			// Clears the timer, sets it to 0
+//			NRF_TIMER1->TASKS_CLEAR = 1;
+//			NRF_TIMER1->CC[0] = (2^PWM_RESOLUTION - 1);
+//			NRF_TIMER1->CC[1] = (2^PWM_RESOLUTION - 1);
+//			NRF_TIMER1->CC[2] = (2^PWM_RESOLUTION - 1);
+//			NRF_TIMER1->CC[3] = 0;
+//			NRF_TIMER1->EVENTS_COMPARE[0] = 0;
+//			NRF_TIMER1->EVENTS_COMPARE[1] = 0;
+//			NRF_TIMER1->EVENTS_COMPARE[2] = 0;
+//			NRF_TIMER1->EVENTS_COMPARE[3] = 0;
+//			// Interrupt setup
+//			NRF_TIMER1->INTENSET = (TIMER_INTENSET_COMPARE3_Enabled << TIMER_INTENSET_COMPARE3_Pos);
+//      attachInterrupt(TIMER1_IRQn, TIMER1_Interrupt);
+//
+//			// Start clock
+//			NRF_TIMER1->TASKS_START = 1;
+//
+//			turn_On_PPI_to_GPIO_for_PWM(ulPin, 0, NRF_TIMER1, 0);
+//
+//			PWM_Channels_Value[0] = (2^PWM_RESOLUTION - 1) - mapResolution(ulValue, _writeResolution, PWM_RESOLUTION);
+//			Timer1_Compare_Unit_Occupied_by_Pin[0] = ulPin;
+//			Pin_Occupied_for_PWM[ulPin] = 1;
+//		}
+//		else
+//		{
+//			if (Timer1_Compare_Unit_Occupied_by_Pin[0] == 255)
+//			{
+//				// Configure ulPin as output
+//        digitalWrite(ulPin, LOW);
+//				pinMode(ulPin, OUTPUT);
+//				if (ulValue > 0)
+//				{
+//					// Configure GPIOTE channel "gpiote_channel" to toggle the PWM pin state
+//					// Note that we can only connect one GPIOTE task to an output pin
+//					nrf_gpiote_task_config(0, ulPin, NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
+//				}
+//				GPIOTE_Channels_Occupied[ulPin] = 0;
+//				turn_On_PPI_to_GPIO_for_PWM(ulPin, 0, NRF_TIMER1, 0);
+//				PWM_Channels_Value[0] = (2^PWM_RESOLUTION - 1) - mapResolution(ulValue, _writeResolution, PWM_RESOLUTION);
+//				Timer1_Compare_Unit_Occupied_by_Pin[0] = ulPin;
+//				Pin_Occupied_for_PWM[ulPin] = 1;
+//				NRF_TIMER1->EVENTS_COMPARE[0] = 0;
+//			}
+//			else if (Timer1_Compare_Unit_Occupied_by_Pin[1] == 255)
+//			{
+//				// Configure ulPin as output
+//        digitalWrite(ulPin, LOW);
+//				pinMode(ulPin, OUTPUT);
+//				if (ulValue > 0)
+//				{
+//					// Configure GPIOTE channel "gpiote_channel" to toggle the PWM pin state
+//					// Note that we can only connect one GPIOTE task to an output pin
+//					nrf_gpiote_task_config(1, ulPin, NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
+//				}
+//				GPIOTE_Channels_Occupied[ulPin] = 1;
+//				turn_On_PPI_to_GPIO_for_PWM(ulPin, 1, NRF_TIMER1, 1);
+//				PWM_Channels_Value[1] = (2^PWM_RESOLUTION - 1) - mapResolution(ulValue, _writeResolution, PWM_RESOLUTION);
+//				Timer1_Compare_Unit_Occupied_by_Pin[1] = ulPin;
+//				Pin_Occupied_for_PWM[ulPin] = 1;
+//				NRF_TIMER1->EVENTS_COMPARE[1] = 0;
+//			}
+//			else if (Timer1_Compare_Unit_Occupied_by_Pin[2] == 255)
+//			{
+//				// Configure ulPin as output
+//        digitalWrite(ulPin, LOW);
+//				pinMode(ulPin, OUTPUT);
+//				if (ulValue > 0)
+//				{
+//					// Configure GPIOTE channel "gpiote_channel" to toggle the PWM pin state
+//					// Note that we can only connect one GPIOTE task to an output pin
+//					nrf_gpiote_task_config(2, ulPin, NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
+//				}
+//				GPIOTE_Channels_Occupied[ulPin] = 2;
+//				turn_On_PPI_to_GPIO_for_PWM(ulPin, 2, NRF_TIMER1, 2);
+//				PWM_Channels_Value[2] = (2^PWM_RESOLUTION - 1) - mapResolution(ulValue, _writeResolution, PWM_RESOLUTION);
+//				Timer1_Compare_Unit_Occupied_by_Pin[2] = ulPin;
+//				Pin_Occupied_for_PWM[ulPin] = 1;
+//				NRF_TIMER1->EVENTS_COMPARE[2] = 0;
+//			}
+//			else
+//			{
+//				// All channels of Timer1 is occupied, need to use Timer2
+//				if (!RFduinoGZLL_used && Timer2_Compare_Unit_Occupied_by_Pin[0] == 255)
+//				{
+//					// Timer2 is not used: need to initialize it
+//
+//					// Configure ulPin as output
+//          digitalWrite(ulPin, LOW);
+//					pinMode(ulPin, OUTPUT);
+//
+//					if (ulValue > 0)
+//					{
+//						// Configure GPIOTE channel "gpiote_channel" to toggle the PWM pin state
+//						// Note that we can only connect one GPIOTE task to an output pin
+//						nrf_gpiote_task_config(3, ulPin, NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
+//					}
+//					GPIOTE_Channels_Occupied[ulPin] = 3;
+//
+//					NRF_TIMER2->TASKS_STOP = 1;
+//					NRF_TIMER2->MODE = TIMER_MODE_MODE_Timer;
+//					//NRF_TIMER2->PRESCALER = 6; // Source clock frequency is divided by 2^6 = 64
+//					NRF_TIMER2->PRESCALER = 0; // Source clock frequency is divided by 2^6 = 64 /////////////////////////////////////////
+//					//NRF_TIMER2->BITMODE = TIMER_BITMODE_BITMODE_08Bit;
+//					NRF_TIMER2->BITMODE = TIMER_BITMODE_BITMODE_16Bit;	////////////////////////////
+//					// Clears the timer, sets it to 0
+//					NRF_TIMER2->TASKS_CLEAR = 1;
+//					NRF_TIMER2->CC[0] = (2^PWM_RESOLUTION - 1);
+//					NRF_TIMER2->CC[3] = 0;
+//					NRF_TIMER2->EVENTS_COMPARE[0] = 0;
+//					NRF_TIMER2->EVENTS_COMPARE[3] = 0;
+//
+//					// Interrupt setup
+//					NRF_TIMER2->INTENSET = (TIMER_INTENSET_COMPARE3_Enabled << TIMER_INTENSET_COMPARE3_Pos);
+//          attachInterrupt(TIMER2_IRQn, TIMER2_Interrupt);
+//
+//					// Start clock
+//					NRF_TIMER2->TASKS_START = 1;
+//
+//					turn_On_PPI_to_GPIO_for_PWM(ulPin, 3, NRF_TIMER2, 0);
+//
+//					PWM_Channels_Value[3] = (2^PWM_RESOLUTION - 1) - mapResolution(ulValue, _writeResolution, PWM_RESOLUTION);
+//					Timer2_Compare_Unit_Occupied_by_Pin[0] = ulPin;
+//					Pin_Occupied_for_PWM[ulPin] = 1;
+//				}
+//				else
+//				{
+//					// Using all 4 TASK channels of GPIOTE, it is not possible to add another PWM channel.
+//				}
+//			}
+//		}
+//	}
+//
+///*
+//	// Defaults to digital write
+//	pinMode(ulPin, OUTPUT);
+//	ulValue = mapResolution(ulValue, _writeResolution, 8);
+//	if (ulValue < 128)
+//		digitalWrite(ulPin, LOW);
+//	else
+//		digitalWrite(ulPin, HIGH);
+//*/
+//}
 
 #ifdef __cplusplus
 }

@@ -7,8 +7,8 @@
 #include "Streaming.h"
 #include <inttypes.h>
 
-#define HW_SERIAL_RX 2
-#define HW_SERIAL_TX 3
+#define HW_SERIAL_RX 2 //muss auf pin7
+#define HW_SERIAL_TX 3// muss auf pin9
 #define HW_BAUDRATE 9600
 
 class HWSerial {

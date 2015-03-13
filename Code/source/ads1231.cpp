@@ -30,25 +30,22 @@ int ads1231_offset = ADS1231_OFFSET;
  * Initialize the interface pins
  */
 void ads1231_init(void) {
- Serial.println("start ADC init");
-  pinMode(ADS1231_PWDN, OUTPUT);
-  digitalWrite(ADS1231_PWDN, LOW);
+	Serial.println("start ADC init");
+	pinMode(ADS1231_PWDN, OUTPUT);
+	digitalWrite(ADS1231_PWDN, LOW);
 	delay(1);
 	digitalWrite(ADS1231_PWDN, HIGH);
-
 	// We send the clock
 	pinMode(ADS1231_CLK_PIN, OUTPUT);
-
 	// ADS1231 sends the data
 	pinMode(ADS1231_DATA_PIN, INPUT);
 	// Enable pullup to get a consistent state in case of disconnect
 	digitalWrite(ADS1231_DATA_PIN, HIGH);
-
 	// Set CLK low to get the ADS1231 out of suspend
 	digitalWrite(ADS1231_CLK_PIN, LOW);
 	delay(1);
-
 }
+
 
 /*
  * Get the raw ADC value. Can block up to 100ms in normal operation.
@@ -81,13 +78,10 @@ errv_t ads1231_get_value(long& val) {
 	// Read 24 bits
 	for (i = 23; i >= 0; i--) {
 		digitalWrite(ADS1231_CLK_PIN, HIGH);
-		delay(1);
-		//delayMicroseconds(100);
-		int ret = digitalRead(ADS1231_DATA_PIN);
-		val = (val << 1) + ret ;
+		delayMicroseconds(1000);
+		val = (val << 1) + digitalRead(ADS1231_DATA_PIN);
 		digitalWrite(ADS1231_CLK_PIN, LOW);
-		//delayMicroseconds(100);
-		delay(1);
+		delayMicroseconds(1000);
 	}
 
 	/* Bit 23 is acutally the sign bit. Shift by 8 to get it to the
@@ -102,8 +96,9 @@ errv_t ads1231_get_value(long& val) {
 	 */
 	//delay(5);
 	digitalWrite(ADS1231_CLK_PIN, HIGH);
-	//delay(1);
+	delayMicroseconds(100);
 	digitalWrite(ADS1231_CLK_PIN, LOW);
+
 
 	return 0; // Success
 }
@@ -116,13 +111,9 @@ errv_t ads1231_get_value(long& val) {
 errv_t ads1231_get_grams(int& grams) {
 	// a primitive emulation using a potentiometer attached to pin A0
 	// returns a value between 0 and 150 grams
-#ifdef ADS1231_EMULATION
-	grams = map(analogRead(A0) , 0, 1023, 0, 150);
-	return 0;
-#endif
-
 	int ret;
 	long raw;
+	//long raw;
 	grams = 0; // On error, grams should always be zero
 
 	ret = ads1231_get_value(raw);
@@ -130,6 +121,11 @@ errv_t ads1231_get_grams(int& grams) {
 		return ret; // Scale error
 
 	grams = raw / ADS1231_DIVISOR + ads1231_offset;
+//	Serial.printf("get_value %x\n\r", raw);
+//	Serial.printf("raw1 %d\n\r", raw);
+//	Serial.printf("raw2 %d\n\r", (&raw)+4);
+//	Serial.printf("raw3 %d\n\r", (&raw)-4);
+//	Serial.printf("raw3 %d\n\r", (&raw)-1);
 	return 0; // Success
 }
 
@@ -142,41 +138,41 @@ errv_t ads1231_get_grams(int& grams) {
  *
  * Returns 0 on sucess, an error code otherwise (see errors.h)
  */
-errv_t ads1231_get_stable_grams(int& grams) {
-	grams = 0; // needs to be 0 on error
-	int i = 0;
-	unsigned long start = millis();
-	int weight_last, weight;
-	//RETURN_IFN_0(ads1231_get_grams(weight));
-	errv_t t= ads1231_get_grams(weight);
-	while (i < 2) {
-		delay(100); // TODO make this a constant in config.h
-		weight_last = weight;
-
-		//RETURN_IFN_0(ads1231_get_grams(weight));
-		t  = ads1231_get_grams(weight);
-		// TODO maybe this would be more correct...? do we have abs?
-		//if (abs((weight_last - weight) < WEIGHT_EPSILON)
-		if (weight_last == weight) {
-			// weight stable
-			i++;
-		} else {
-			// weight not stable
-			i = 0;
-		}
-		DEBUG_START();
-		DEBUG_MSG("Not stable: ");
-		DEBUG_VAL(weight);
-		DEBUG_VAL(weight_last);
-		DEBUG_END();
-
-		if (millis() - start > ADS1231_STABLE_MILLIS) {
-			return ADS1231_STABLE_TIMEOUT;
-		}
-	}
-	grams = weight;
-	return 0;
-}
+//errv_t ads1231_get_stable_grams(int& grams) {
+//	grams = 0; // needs to be 0 on error
+//	int i = 0;
+//	unsigned long start = millis();
+//	int weight_last, weight;
+//	//RETURN_IFN_0(ads1231_get_grams(weight));
+//	errv_t t = ads1231_get_grams(weight);
+//	while (i < 2) {
+//		delay(100); // TODO make this a constant in config.h
+//		weight_last = weight;
+//
+//		//RETURN_IFN_0(ads1231_get_grams(weight));
+//		t = ads1231_get_grams(weight);
+//		// TODO maybe this would be more correct...? do we have abs?
+//		//if (abs((weight_last - weight) < WEIGHT_EPSILON)
+//		if (weight_last == weight) {
+//			// weight stable
+//			i++;
+//		} else {
+//			// weight not stable
+//			i = 0;
+//		}
+//		DEBUG_START();
+//		DEBUG_MSG("Not stable: ");
+//		DEBUG_VAL(weight);
+//		DEBUG_VAL(weight_last);
+//		DEBUG_END();
+//
+//		if (millis() - start > ADS1231_STABLE_MILLIS) {
+//			return ADS1231_STABLE_TIMEOUT;
+//		}
+//	}
+//	grams = weight;
+//	return 0;
+//}
 
 /**
  * Tare scale. Call this if there is nothing on scale to store offset and zero
@@ -197,15 +193,15 @@ errv_t ads1231_tare(int& grams) {
  * Get grams from scale if measurement fast enough, otherwise returns
  * with error ADS1231_WOULD_BLOCK. Should not block longer than 10ms.
  */
-errv_t ads1231_get_noblock(int& grams) {
-	// ADS1231 supports 10 samples per second. That means after the last
-	// sample we need to wait 100ms. If 90ms passed already, it should be OK.
-	unsigned long t = (millis() - ads1231_last_millis) % 100;
-	if (t < 90) {
-		return ADS1231_WOULD_BLOCK;
-	}
-	return ads1231_get_grams(grams);
-}
+//errv_t ads1231_get_noblock(int& grams) {
+//	// ADS1231 supports 10 samples per second. That means after the last
+//	// sample we need to wait 100ms. If 90ms passed already, it should be OK.
+//	unsigned long t = (millis() - ads1231_last_millis) % 100;
+//	if (t < 90) {
+//		return ADS1231_WOULD_BLOCK;
+//	}
+//	return ads1231_get_grams(grams);
+//}
 
 /**
  * Blocks until weight is more than weight + WEIGHT_EPSILON

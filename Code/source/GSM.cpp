@@ -17,6 +17,7 @@
 #include "GSM.h"
 #include "variant.h"
 #include "Arduino.h"
+#include "timer.h"
 
 //#define _GSM_TXPIN_ 3
 //#define _GSM_RXPIN_ 2
@@ -27,7 +28,7 @@ GSM::GSM() {
 
 int GSM::begin(int baud_rate) {
 	_cell.begin(baud_rate);
-
+	timerStart();
 	int response = -1;
 	int cont = 0;
 	boolean norep = true;
@@ -38,42 +39,36 @@ int GSM::begin(int baud_rate) {
 
 	// if no-reply we turn to turn on the module
 	for (cont = 0; cont < 3; cont++) {
-		if (AT_RESP_ERR_NO_RESP == SendATCmdWaitResp(str_at, 500, 100, str_ok, 5)
-				&& !turnedON) {		//check power
+		if (AT_RESP_ERR_NO_RESP == SendATCmdWaitResp(str_at, 500, 100, str_ok, 5) && !turnedON) {	//check power
 			_cell.printError("set Power on");
-			pinMode(4, OUTPUT);
-			digitalWrite(4, HIGH);
+
 		} else {
 			WaitResp(1000, 1000);
 		}
 	}
-
 	if (AT_RESP_OK == SendATCmdWaitResp(str_at, 500, 100, str_ok, 5)) {
-		_cell.printError("turnedON=true;");
+		_cell.printError("turnedON=true1;");
 		turnedON = true;
 		norep = false;
 	}
 	if (norep == true && !turnedON) {
 		_cell.printError("Module does not response ");
-		pinMode(4, OUTPUT);
-		digitalWrite(4, HIGH);
-		delay(5000);
+		timerStart();
+		delay(10000);
 		if (AT_RESP_OK == SendATCmdWaitResp(str_at, 500, 100, str_ok, 5)) {
 			_cell.printError("turnedON=true;");
 			turnedON = true;
 			norep = false;
-		}else{
-			_cell.printError(
-							"ERROR: SIM900 doesn't answer. Check power and serial pins in GSM.cpp");
+		} else {
+			_cell.printError("ERROR: SIM900 doesn't answer. Check power and serial pins in GSM.cpp");
 			return 0;
 		}
 	}
 	SetCommLineStatus(CLS_FREE);
-
 	if (turnedON) {
 		WaitResp(50, 50);
 		InitParam(PARAM_SET_0);
-		InitParam(PARAM_SET_1);          //configure the module
+		InitParam(PARAM_SET_1);		//configure the module
 		Echo(0);               //enable AT echo
 		char *pin = "19911";
 		setPIN(pin);
@@ -131,15 +126,16 @@ void GSM::InitParam(byte group) {
 		// Echo canceller enabled
 		SendATCmdWaitResp("AT#SHFEC=1", 500, 50, str_ok, 5);
 		// Ringer tone select (0 to 32)
-		SendATCmdWaitResp("AT#SRS=26,0", 500, 50, str_ok, 5);
+		//SendATCmdWaitResp("AT#SRS=26,0", 500, 50, str_ok, 5);
 		// Microphone gain (0 to 7) - response here sometimes takes
 		// more than 500msec. so 1000msec. is more safety
 		//SendATCmdWaitResp("AT#HFMICG=7", 1000, 50, str_ok, 5);
+
 		// set the SMS mode to text
 		SendATCmdWaitResp(F("AT+CMGF=1"), 500, 50, str_ok, 5);
 		// Auto answer after first ring enabled
 		// auto answer is not used
-		SendATCmdWaitResp("ATS0=1", 500, 50, str_ok, 5);
+		//SendATCmdWaitResp("ATS0=1", 500, 50, str_ok, 5);
 		// select ringer path to handsfree
 		//SendATCmdWaitResp("AT#SRP=1", 500, 50, str_ok, 5);
 		// select ringer sound level
@@ -197,9 +193,8 @@ byte GSM::WaitResp(uint16_t start_comm_tmout, uint16_t max_interchar_tmout,
  AT_RESP_ERR_DIF_RESP = 0,   // response_string is different from the response
  AT_RESP_OK = 1,             // response_string was included in the response
  **********************************************************/
-char GSM::SendATCmdWaitResp(char const *AT_cmd_string,
-		uint16_t start_comm_tmout, uint16_t max_interchar_tmout,
-		char const *response_string, byte no_of_attempts) {
+char GSM::SendATCmdWaitResp(char const *AT_cmd_string, uint16_t start_comm_tmout,
+		uint16_t max_interchar_tmout, char const *response_string, byte no_of_attempts) {
 	byte status;
 	char ret_val = AT_RESP_ERR_NO_RESP;
 	byte i;
@@ -245,9 +240,8 @@ char GSM::SendATCmdWaitResp(char const *AT_cmd_string,
  AT_RESP_ERR_DIF_RESP = 0,   // response_string is different from the response
  AT_RESP_OK = 1,             // response_string was included in the response
  **********************************************************/
-char GSM::SendATCmdWaitResp(const __FlashStringHelper *AT_cmd_string,
-		uint16_t start_comm_tmout, uint16_t max_interchar_tmout,
-		char const *response_string, byte no_of_attempts) {
+char GSM::SendATCmdWaitResp(const __FlashStringHelper *AT_cmd_string, uint16_t start_comm_tmout,
+		uint16_t max_interchar_tmout, char const *response_string, byte no_of_attempts) {
 	byte status;
 	char ret_val = AT_RESP_ERR_NO_RESP;
 	byte i;
@@ -280,9 +274,8 @@ char GSM::SendATCmdWaitResp(const __FlashStringHelper *AT_cmd_string,
 	return (ret_val);
 }
 
-char* GSM::SendATCmdWaitRespValue(const char *AT_cmd_string,
-		uint16_t start_comm_tmout, uint16_t max_interchar_tmout,
-		byte no_of_attempts) {
+char* GSM::SendATCmdWaitRespValue(const char *AT_cmd_string, uint16_t start_comm_tmout,
+		uint16_t max_interchar_tmout, byte no_of_attempts) {
 	byte status;
 	byte i;
 	char* ret = "";
@@ -455,8 +448,7 @@ char GSM::InitSMSMemory(void) {
 	// response:
 	// +CPMS: <usedr>,<totalr>,<usedw>,<totalw>,<useds>,<totals>
 	if (AT_RESP_OK
-			== SendATCmdWaitResp(F("AT+CPMS=\"SM\",\"SM\",\"SM\""), 1000, 1000,
-					"+CPMS:", 10)) {
+			== SendATCmdWaitResp(F("AT+CPMS=\"SM\",\"SM\",\"SM\""), 1000, 1000, "+CPMS:", 10)) {
 		ret_val = 1;
 	} else
 		ret_val = 0;
