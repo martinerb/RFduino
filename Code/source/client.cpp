@@ -1,11 +1,15 @@
 #include "client.h"
+#include "config.h"
 
 // interval between advertisement transmissions ms (range is 20ms to 10.24s) - default 20ms
 // 675 ms between advertisement transmissions
 
-Clientclass client_;
-Clientclass::Clientclass() {
+int weight[NODENUMBER];
+int temp_value_[NODENUMBER];
 
+
+Clientclass::Clientclass() {
+	//device_ = DEVICE;
 }
 Clientclass::Clientclass(bool ble_enable, device_t device) {
 	ble_transmission = ble_enable;
@@ -153,7 +157,9 @@ void RFduinoBLE_onRSSI(int rssi) {
 void RFduinoGZLL_onReceive(device_t device, int rssi, char *data, int len) {
 	char cp[len - 2];
 	int i = 0;
+	int val;
 	char protocol[2];
+	String res = "";
 
 	if (len > 0) {
 		for (i = 2; i < len; i++) {
@@ -169,12 +175,21 @@ void RFduinoGZLL_onReceive(device_t device, int rssi, char *data, int len) {
 				client_.setError(String("client want to send data-send temp"));
 				RFduinoGZLL.sendToDevice(device, "t?");
 			} else if ((protocol[0] == 't') && (protocol[1] == '!')) {
+
 				client_.setError(String("recieved temp -need adc value") + String("\n\r") + String(cp) + String("\n\r"));
-				client_.setTempValue((int) cp, device);
+				int index = String(cp).indexOf(" ");
+				client_.setTempValue((int)cp, device);
 				RFduinoGZLL.sendToDevice(device, "a?");
 			} else if ((protocol[0] == 'a') && (protocol[1] == '!')) {
 				client_.setError(String("recieved adc -no more values neee") + String("\n\r") + String(cp) + String("\n\r"));
-				client_.setLoadWeight((int) cp, device);
+				int index = String(cp).indexOf(" ");
+				val = (int)cp;
+				if (index != -1){
+					val = (String(cp).substring(0,index)).toInt();
+				}
+				Serial.println(val);
+
+				client_.setLoadWeight(val, device);
 				RFduinoGZLL.sendToDevice(device, "f?");
 				if (client_.decTransactionCount() == 0) {
 					client_.setTransactionActive(false);
@@ -185,10 +200,13 @@ void RFduinoGZLL_onReceive(device_t device, int rssi, char *data, int len) {
 		if (len > 0) {
 			if ((protocol[0] == 't') && (protocol[1] == '?')) {
 				client_.setError(String("host want to recieve temp\r\n"));
-				RFduinoGZLL.sendToHost(String("t!") + String(client_.getTempValue(client_.getCurrentDevice())));
+				client_.setError(String("t!") + String(client_.getTempValue(client_.getCurrentDevice())));
+//				Serial.println(client_.getTempValue(client_.getCurrentDevice()));
+				RFduinoGZLL.sendToHost((String("t!") + String(client_.getTempValue(client_.getCurrentDevice()))).cstr());
 			} else if ((protocol[0] == 'a') && (protocol[1] == '?')) {
 				client_.setError(String("host want to recieve adc\r\n"));
-				RFduinoGZLL.sendToHost(String("a!") + String(client_.getLoadWeight(client_.getCurrentDevice())));
+				client_.setError(String("a!") + String(client_.getLoadWeight(client_.getCurrentDevice())));
+				RFduinoGZLL.sendToHost((String("a!") + String(client_.getLoadWeight(client_.getCurrentDevice()))).cstr());
 			} else if ((protocol[0] == 'f') && (protocol[1] == '?')) {
 				client_.setError(String("transaction finish now\r\n"));
 				client_.setTransactionActive(false);

@@ -1,5 +1,4 @@
 #include "SIM900.h"
-#include "Streaming.h"
 #include "HWSerial.h"
 
 //#define _GSM_CONNECTION_TOUT_ 4

@@ -3,7 +3,6 @@
 #include "shell.h"
 #include "RFduinoBLE.h"
 #include "client.h"
-#include "utils.h"
 #include "sms.h"
 #include "SIM900.h"
 #include "sensor.h"
@@ -17,11 +16,22 @@ void roleClientBLE();
 void initADC();
 void roleClientGZLL();
 
+
+Clientclass client_;
 void getWeigth() {
 	initADC();
-	delay(1000);
+	delay(2000);
 	client_.setTempValue(20, client_.getCurrentDevice());
-	client_.setLoadWeight(readADC(), client_.getCurrentDevice());
+	int adc = readADC();
+	client_.setLoadWeight(adc, client_.getCurrentDevice());
+
+	int i = 0;
+	for (i = 0; i < NODENUMBER; i++) {
+		Serial.println(String("nodenumber: ") + String(i));
+		Serial.println(client_.getLoadWeight((device_t) i));
+		Serial.println(client_.getTempValue((device_t) i));
+	}
+
 	ADCPowerDown();
 	delay(500);
 }
@@ -39,6 +49,7 @@ void sendSMS() {
 	sms_text = "Gewichte der Waage: " + String(client_.getCurrentDevice()) + "\r\n"
 			+ String(client_.getLoadWeight(client_.getCurrentDevice()));
 	int ret = gsm.sendSMS(PHONE_NUMBER, sms_text.cstr());
+	timerStop();
 	Serial.end();
 	Serial.begin(9600);
 	delay(1000);
@@ -64,7 +75,7 @@ void setup() {
 
 void test() {
 
-	getWeigth();
+	//getWeigth();
 	Serial.println(client_.getLoadWeight(client_.getCurrentDevice()));
 	//initGSM();
 	//sendSMS();
@@ -175,7 +186,7 @@ void roleClientGZLL() {
 	//client_ = Clientclass(false, DEVICE1);
 	getWeigth();
 	RFduino_ULPDelay(2000);
-	client_ = Clientclass(false, DEVICE0);
+	client_ = Clientclass(false, DEVICE);
 	delay(1000);
 }
 

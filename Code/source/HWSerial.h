@@ -4,7 +4,6 @@
 #define _HWSERIAL_H_
 
 #include "Arduino.h"
-#include "Streaming.h"
 #include <inttypes.h>
 #include "config.h"
 

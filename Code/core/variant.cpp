@@ -52,6 +52,7 @@
 
 RingBuffer rxBuffer, txBuffer;
 
+
 UARTClass Serial( &rxBuffer, &txBuffer );
 
 
@@ -232,14 +233,14 @@ void UART0_Stop()
               | (GPIO_PIN_CNF_DRIVE_S0S1 << GPIO_PIN_CNF_DRIVE_Pos)
               | (GPIO_PIN_CNF_PULL_Pullup << GPIO_PIN_CNF_PULL_Pos)
               | (GPIO_PIN_CNF_INPUT_Connect << GPIO_PIN_CNF_INPUT_Pos)
-              | (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_Pos);                    
+              | (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_Pos);
 
   UART0_State = UART0_State_NotStarted;
 }
 
 void UART0_FlushTX()
 {
-  Serial.flush(); 
+  Serial.flush();
 }
 
 // delegate to serial for syscalls/write and error messages

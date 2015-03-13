@@ -17,8 +17,7 @@ eclipse1:
 	make -f makefile.md afiles
 	make -f makefile.md main
 	make -f makefile.md link
-	make -f makefile.md load1
-	make -f makefile.md load2
+
 
 eclipse2:
 	make -f makefile.md cleansource

@@ -6,17 +6,15 @@
 #include "RFduinoBLE.h"
 #include "variant.h"
 #include "Arduino.h"
-
 #define NODENUMBER 1
+
 class Clientclass: public virtual RFduinoGZLLClass {
 private:
 
 	bool ble_transmission;
-	device_t device_;
+	device_t device_ = DEVICE0;
 	int rssi;
 	String error_ = "";
-	int weight[NODENUMBER];
-	int temp_value_[NODENUMBER];
 	bool transaction_active_ = false;
 	bool client_transaction_finish = false;
 
@@ -28,26 +26,21 @@ public:
 	void sendBLE(char* data, int len);
 	void switchConnection(device_t device);
 	device_t getCurrentDevice();
-	int getRSSI();
-	void setRSSI(int rssi);
+
 	void setError(String t);
 	String getError();
-
 	int getTempValue(device_t node);
 	void setTempValue(int value, device_t node);
-
+	int getRSSI();
+	void setRSSI(int rssi);
 	int getLoadWeight(device_t node);
 	void setLoadWeight(int value, device_t node);
-
 	bool getTransactionActive();
 	void setTransactionActive(bool ta);
 	bool getTransactionFinish();
 	void setTransactionFinish(bool ta);
-
 	int getTransactionCount();
 	int decTransactionCount();
-
-
 
 };
 extern Clientclass client_;

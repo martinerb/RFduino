@@ -15,21 +15,15 @@
  */
 
 #include "Arduino.h"
-//#include <limits.h>
-
 #include "ads1231.h"
-//#include "custom_eeprom.h"
-#include "utils.h"
 #include "config.h"
-#include "errors.h"
 
 unsigned long ads1231_last_millis = 0;
 
 /*
  * Initialize the interface pins
  */
-void ads1231_init(void)
-{
+void ads1231_init(void) {
 	Serial.println("start ADC init");
 	pinMode(ADS1231_PWDN, OUTPUT);
 	digitalWrite(ADS1231_PWDN, LOW);
@@ -43,15 +37,14 @@ void ads1231_init(void)
 	digitalWrite(ADS1231_DATA_PIN, HIGH);
 	// Set CLK low to get the ADS1231 out of suspend
 	digitalWrite(ADS1231_CLK_PIN, LOW);
-	delay(1);
+	delay(500);
 }
 
 /*
  * Get the raw ADC value. Can block up to 100ms in normal operation.
  * Returns 0 on success, an error code otherwise (see ads1231.h)
  */
-errv_t ads1231_get_value(long& val)
-{
+errv_t ads1231_get_value(long& val) {
 	int i = 0;
 	unsigned long start;
 
@@ -62,22 +55,19 @@ errv_t ads1231_get_value(long& val)
 	 * Note that just testing for the state of the pin is unsafe.
 	 */
 	start = millis();
-	while (digitalRead(ADS1231_DATA_PIN) != HIGH)
-	{
+	while (digitalRead(ADS1231_DATA_PIN) != HIGH) {
 		if (millis() > start + 150)
 			return ADS1231_TIMEOUT_HIGH; // Timeout waiting for HIGH
 	}
 	start = millis();
-	while (digitalRead(ADS1231_DATA_PIN) != LOW)
-	{
+	while (digitalRead(ADS1231_DATA_PIN) != LOW) {
 		if (millis() > start + 150)
 			return ADS1231_TIMEOUT_LOW; // Timeout waiting for LOW
 	}
 	ads1231_last_millis = millis();
 
 	// Read 24 bits
-	for (i = 23; i >= 0; i--)
-	{
+	for (i = 23; i >= 0; i--) {
 		digitalWrite(ADS1231_CLK_PIN, HIGH);
 		delayMicroseconds(1000);
 		val = (val << 1) + digitalRead(ADS1231_DATA_PIN);
@@ -105,8 +95,7 @@ errv_t ads1231_get_value(long& val)
  * operation because the ADS1231 makes only 10 measurements per second.
  * Returns 0 on sucess, an error code otherwise (see errors.h)
  */
-errv_t ads1231_get_grams(int& grams)
-{
+errv_t ads1231_get_grams(int& grams) {
 	// a primitive emulation using a potentiometer attached to pin A0
 	// returns a value between 0 and 150 grams
 	int ret;

@@ -19,9 +19,6 @@
 #include "Arduino.h"
 #include "timer.h"
 
-//#define _GSM_TXPIN_ 3
-//#define _GSM_RXPIN_ 2
-
 GSM::GSM() {
 }
 ;
@@ -156,8 +153,7 @@ void GSM::InitParam(byte group) {
 	}
 }
 
-byte GSM::WaitResp(uint16_t start_comm_tmout, uint16_t max_interchar_tmout,
-		char const *expected_resp_string) {
+byte GSM::WaitResp(uint16_t start_comm_tmout, uint16_t max_interchar_tmout, char const *expected_resp_string) {
 	byte status;
 	byte ret_val;
 
@@ -168,19 +164,13 @@ byte GSM::WaitResp(uint16_t start_comm_tmout, uint16_t max_interchar_tmout,
 	} while (status == RX_NOT_FINISHED);
 
 	if (status == RX_FINISHED) {
-		// something was received but what was received?
-		// ---------------------------------------------
 
 		if (IsStringReceived(expected_resp_string)) {
-			// expected string was received
-			// ----------------------------
 			ret_val = RX_FINISHED_STR_RECV;
 		} else {
 			ret_val = RX_FINISHED_STR_NOT_RECV;
 		}
 	} else {
-		// nothing was received
-		// --------------------
 		ret_val = RX_TMOUT_ERR;
 	}
 	return (ret_val);
@@ -194,8 +184,8 @@ byte GSM::WaitResp(uint16_t start_comm_tmout, uint16_t max_interchar_tmout,
  AT_RESP_ERR_DIF_RESP = 0,   // response_string is different from the response
  AT_RESP_OK = 1,             // response_string was included in the response
  **********************************************************/
-char GSM::SendATCmdWaitResp(char const *AT_cmd_string, uint16_t start_comm_tmout,
-		uint16_t max_interchar_tmout, char const *response_string, byte no_of_attempts) {
+char GSM::SendATCmdWaitResp(char const *AT_cmd_string, uint16_t start_comm_tmout, uint16_t max_interchar_tmout, char const *response_string,
+		byte no_of_attempts) {
 	byte status;
 	char ret_val = AT_RESP_ERR_NO_RESP;
 	byte i;
@@ -226,9 +216,7 @@ char GSM::SendATCmdWaitResp(char const *AT_cmd_string, uint16_t start_comm_tmout
 			Serial.println("recieved nothing ");
 			ret_val = AT_RESP_ERR_NO_RESP;
 		}
-
 	}
-
 	WaitResp(1000, 5000);
 	return (ret_val);
 }
@@ -241,8 +229,8 @@ char GSM::SendATCmdWaitResp(char const *AT_cmd_string, uint16_t start_comm_tmout
  AT_RESP_ERR_DIF_RESP = 0,   // response_string is different from the response
  AT_RESP_OK = 1,             // response_string was included in the response
  **********************************************************/
-char GSM::SendATCmdWaitResp(const __FlashStringHelper *AT_cmd_string, uint16_t start_comm_tmout,
-		uint16_t max_interchar_tmout, char const *response_string, byte no_of_attempts) {
+char GSM::SendATCmdWaitResp(const __FlashStringHelper *AT_cmd_string, uint16_t start_comm_tmout, uint16_t max_interchar_tmout,
+		char const *response_string, byte no_of_attempts) {
 	byte status;
 	char ret_val = AT_RESP_ERR_NO_RESP;
 	byte i;
@@ -269,14 +257,11 @@ char GSM::SendATCmdWaitResp(const __FlashStringHelper *AT_cmd_string, uint16_t s
 			// --------------------
 			ret_val = AT_RESP_ERR_NO_RESP;
 		}
-
 	}
-
 	return (ret_val);
 }
 
-char* GSM::SendATCmdWaitRespValue(const char *AT_cmd_string, uint16_t start_comm_tmout,
-		uint16_t max_interchar_tmout, byte no_of_attempts) {
+char* GSM::SendATCmdWaitRespValue(const char *AT_cmd_string, uint16_t start_comm_tmout, uint16_t max_interchar_tmout, byte no_of_attempts) {
 	byte status;
 	byte i;
 	char* ret = "";
@@ -316,10 +301,8 @@ byte GSM::WaitResp(uint16_t start_comm_tmout, uint16_t max_interchar_tmout) {
 byte GSM::IsRxFinished(void) {
 	byte num_of_bytes;
 	byte ret_val = RX_NOT_FINISHED;  // default not finished
-
 	// Rx state machine
 	// ----------------
-
 	if (rx_state == RX_NOT_STARTED) {
 		// Reception is not started yet - check tmout
 		if (!_cell.available()) {
@@ -448,8 +431,7 @@ char GSM::InitSMSMemory(void) {
 	// send AT command to init memory for SMS in the SIM card
 	// response:
 	// +CPMS: <usedr>,<totalr>,<usedw>,<totalw>,<useds>,<totals>
-	if (AT_RESP_OK
-			== SendATCmdWaitResp(F("AT+CPMS=\"SM\",\"SM\",\"SM\""), 1000, 1000, "+CPMS:", 10)) {
+	if (AT_RESP_OK == SendATCmdWaitResp(F("AT+CPMS=\"SM\",\"SM\",\"SM\""), 1000, 1000, "+CPMS:", 10)) {
 		ret_val = 1;
 	} else
 		ret_val = 0;
@@ -556,11 +538,6 @@ byte GSM::CheckRegistration(void) {
 		ret_val = REG_NO_RESPONSE;
 	}
 	SetCommLineStatus(CLS_FREE);
-
-//	_cell.end();
-//	Serial.begin(9600);
-//	delay(1000);
-//	Serial.println(ret_val);
 	return (ret_val);
 }
 
@@ -573,8 +550,6 @@ int GSM::setPIN(char *pin) {
 	_cell.begin(9600);
 	_cell.print(F("AT+CPIN="));
 	_cell.println(pin);
-	//SimpleWrite(F("AT+CPIN="));
-	//SimpleWriteln(pin);
 
 	//Expect str_ok.
 

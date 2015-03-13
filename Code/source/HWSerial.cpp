@@ -1,53 +1,35 @@
 #include "HWSerial.h"
 //#ifdef MEGA
 
-void HWSerial::begin(int baud_rate){
+void HWSerial::begin(int baud_rate) {
 	//Serial.println("HWSerial::begin!");
 	Serial.end();
 	hw_baudrate = baud_rate;
-	Serial.begin(baud_rate,HW_SERIAL_RX,HW_SERIAL_TX);
+	Serial.begin(baud_rate, HW_SERIAL_RX, HW_SERIAL_TX);
 	delay(100);
 }
 HWSerial::HWSerial() {
 	this->hw_baudrate = HW_BAUDRATE;
 }
 
-void HWSerial::printError(const char* c){
+void HWSerial::printError(const char* c) {
 	Serial.flush();
 	Serial.end();
 	Serial.begin(9600);
 	delay(5000);
 	Serial.println(c);
 	Serial.end();
-	Serial.begin(hw_baudrate,HW_SERIAL_RX,HW_SERIAL_TX);
+	Serial.begin(hw_baudrate, HW_SERIAL_RX, HW_SERIAL_TX);
 	delay(2000);
 
-
 }
-/*
- bool HWSerial::listen(){
- return Serial.listen();
- }
- */
 void HWSerial::end() {
 	Serial.end();
 }
-/*
- bool HWSerial::isListening(){
- return Serial.isListening();
- }
-
- bool HWSerial::overflow(){
- return Serial.overflow();
- }
- */
-//void HWSerial::begin(long baud_rate) {
-//	Serial.begin(baud_rate);
-//}
 
 int HWSerial::peek() {
 	Serial.end();
-	Serial.begin(hw_baudrate,HW_SERIAL_RX,HW_SERIAL_TX);
+	Serial.begin(hw_baudrate, HW_SERIAL_RX, HW_SERIAL_TX);
 	delay(5000);
 	int ret = Serial.peek();
 	Serial.end();
@@ -57,44 +39,22 @@ int HWSerial::peek() {
 }
 
 size_t HWSerial::write(uint8_t byte) {
-	//Serial.end();
-	//Serial.begin(hw_baudrate,HW_SERIAL_RX,HW_SERIAL_TX);
-	//delay(5000);
 	int ret = Serial.write(byte);
-	//Serial.end();
-	//Serial.begin(9600);
 	return ret;
 }
 
 int HWSerial::read() {
-	//Serial.end();
-	//delay(10);
-	//Serial.begin(hw_baudrate,HW_SERIAL_RX,HW_SERIAL_TX);
-	//delay(5000);
 	int ret = Serial.read();
-	//Serial.end();
-	//Serial.begin(9600);
 	return ret;
 }
 
 int HWSerial::available() {
-	//Serial.end();
-	//Serial.begin(hw_baudrate,HW_SERIAL_RX,HW_SERIAL_TX);
-	//delay(5000);
 	int ret = Serial.available();
-	//Serial.end();
-	//Serial.begin(9600);
 	return ret;
 }
 
 void HWSerial::flush() {
-	//Serial.end();
-	//Serial.begin(hw_baudrate,HW_SERIAL_RX,HW_SERIAL_TX);
-	//delay(5000);
 	Serial.flush();
-	//Serial.end();
-	//Serial.begin(9600);
-
 }
 
 /**************************************/
@@ -327,8 +287,7 @@ boolean HWSerial::findUntil(char *target, char *terminate) {
 	return false;
 }
 
-int HWSerial::getString(char *pre_string, char *post_string, char *buffer,
-		int length) {
+int HWSerial::getString(char *pre_string, char *post_string, char *buffer, int length) {
 	if (find(pre_string)) {
 		int index = 0;
 		*buffer = 0;

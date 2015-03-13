@@ -10,16 +10,14 @@
 // degrees c (-198.00 to +260.00)
 // degrees f (-128.00 to +127.00)
 
-float readTemperature()
-{
+float readTemperature() {
 	Serial.println("Start reading temperature");
 	float temp = RFduino_temperature(CELSIUS);
 	Serial.printf("%f", temp);
 	return temp;
 }
 
-void initADC()
-{
+void initADC() {
 ////power supply over pin 5(GND) and 6(VDD)
 //	pinMode(6, OUTPUT);
 //	pinMode(5, OUTPUT);
@@ -29,17 +27,13 @@ void initADC()
 	ads1231_init();
 }
 
-void ADCPowerDown()
-{
-//	Serial.println("start power down mode");
+void ADCPowerDown() {
 	digitalWrite(ADS1231_PWDN, LOW);
 }
 
-int readADC()
-{
+int readADC() {
 	int weight = 0;
 	ads1231_get_grams(weight);
-	//Serial.printf("get_value %d\n\r", weight);
 	return weight;
 }
 
