@@ -24,12 +24,12 @@
 #include "errors.h"
 
 unsigned long ads1231_last_millis = 0;
-int ads1231_offset = ADS1231_OFFSET;
 
 /*
  * Initialize the interface pins
  */
-void ads1231_init(void) {
+void ads1231_init(void)
+{
 	Serial.println("start ADC init");
 	pinMode(ADS1231_PWDN, OUTPUT);
 	digitalWrite(ADS1231_PWDN, LOW);
@@ -50,7 +50,8 @@ void ads1231_init(void) {
  * Get the raw ADC value. Can block up to 100ms in normal operation.
  * Returns 0 on success, an error code otherwise (see ads1231.h)
  */
-errv_t ads1231_get_value(long& val) {
+errv_t ads1231_get_value(long& val)
+{
 	int i = 0;
 	unsigned long start;
 
@@ -61,19 +62,22 @@ errv_t ads1231_get_value(long& val) {
 	 * Note that just testing for the state of the pin is unsafe.
 	 */
 	start = millis();
-	while (digitalRead(ADS1231_DATA_PIN) != HIGH) {
+	while (digitalRead(ADS1231_DATA_PIN) != HIGH)
+	{
 		if (millis() > start + 150)
 			return ADS1231_TIMEOUT_HIGH; // Timeout waiting for HIGH
 	}
 	start = millis();
-	while (digitalRead(ADS1231_DATA_PIN) != LOW) {
+	while (digitalRead(ADS1231_DATA_PIN) != LOW)
+	{
 		if (millis() > start + 150)
 			return ADS1231_TIMEOUT_LOW; // Timeout waiting for LOW
 	}
 	ads1231_last_millis = millis();
 
 	// Read 24 bits
-	for (i = 23; i >= 0; i--) {
+	for (i = 23; i >= 0; i--)
+	{
 		digitalWrite(ADS1231_CLK_PIN, HIGH);
 		delayMicroseconds(1000);
 		val = (val << 1) + digitalRead(ADS1231_DATA_PIN);
@@ -101,24 +105,19 @@ errv_t ads1231_get_value(long& val) {
  * operation because the ADS1231 makes only 10 measurements per second.
  * Returns 0 on sucess, an error code otherwise (see errors.h)
  */
-errv_t ads1231_get_grams(int& grams) {
+errv_t ads1231_get_grams(int& grams)
+{
 	// a primitive emulation using a potentiometer attached to pin A0
 	// returns a value between 0 and 150 grams
 	int ret;
 	long raw;
-	//long raw;
 	grams = 0; // On error, grams should always be zero
 
 	ret = ads1231_get_value(raw);
 	if (ret != 0)
 		return ret; // Scale error
 
-	grams = raw / ADS1231_DIVISOR + ads1231_offset;
-//	Serial.printf("get_value %x\n\r", raw);
-//	Serial.printf("raw1 %d\n\r", raw);
-//	Serial.printf("raw2 %d\n\r", (&raw)+4);
-//	Serial.printf("raw3 %d\n\r", (&raw)-4);
-//	Serial.printf("raw3 %d\n\r", (&raw)-1);
+	grams = raw / ADS1231_DIVISOR + ADS1231_OFFSET;
 	return 0; // Success
 }
 
@@ -166,123 +165,3 @@ errv_t ads1231_get_grams(int& grams) {
 //	grams = weight;
 //	return 0;
 //}
-
-/**
- * Tare scale. Call this if there is nothing on scale to store offset and zero
- * current measured value.
- */
-errv_t ads1231_tare(int& grams) {
-	// get grams or return error immediately on error
-	//RETURN_IFN_0(ads1231_get_stable_grams(grams));
-	errv_t t = ads1231_get_stable_grams(grams);
-	// success
-	ads1231_offset += -grams;
-	//   EEPROM_write(ADS1231_OFFSET_EEPROM_POS, ads1231_offset);
-
-	return 0;
-}
-
-/**
- * Get grams from scale if measurement fast enough, otherwise returns
- * with error ADS1231_WOULD_BLOCK. Should not block longer than 10ms.
- */
-//errv_t ads1231_get_noblock(int& grams) {
-//	// ADS1231 supports 10 samples per second. That means after the last
-//	// sample we need to wait 100ms. If 90ms passed already, it should be OK.
-//	unsigned long t = (millis() - ads1231_last_millis) % 100;
-//	if (t < 90) {
-//		return ADS1231_WOULD_BLOCK;
-//	}
-//	return ads1231_get_grams(grams);
-//}
-
-/**
- * Blocks until weight is more than weight + WEIGHT_EPSILON
- * but at maximum for 'max_delay' milliseconds. max_delay is ignored if it is
- * negative.
- * weight might be current weight to detect any increase of weight.
- * If "reverse" is set to true, we wait until weight gets less than weight +
- * WEIGHT_EPSILON.
- * Return values:   see also errors.h!
- *  0 weight was reached (success)
- *  1 timeout (pouring too slow)
- *  2 bottle empty (weight did not change for BOTTLE_EMPTY_INTERVAL ms)
- *  3 cup removed (weight has decreased)
- *  other values: scale error (see ads1231.h).
- */
-/*
- errv_t delay_until(long max_delay, int weight, bool pour_handling, bool reverse) {
- unsigned long start = millis();
- int cur, ret;
- int last     = -999; // == -inf, because the first time checks should
- int last_old = -999; // always pass until we have a valid last/last_old
- unsigned long last_millis = 0;
-
- int one = 1;
- if (reverse) {
- one = -1;
- }
-
- while(1) {
- if(max_delay > 0 && millis() - start > max_delay)
- return DELAY_UNTIL_TIMEOUT; // Timeout
-
- // this blocks 100ms because ADS1231 runs at 10 samples per second
- ret = ads1231_get_grams(cur);
- if(ret != 0)
- return ret; // Scale error
-
- // this delays, we do not want it...
- //DEBUG_VAL_LN(cur);
-
- RETURN_IFN_0(check_aborted());
-
- // "one" inverts the inequality
- if(cur * one > (weight + WEIGHT_EPSILON) * one)
- return 0;
-
- // Just waiting for weight, no special pouring error detection
- if (!pour_handling)
- continue;
-
- if(last > cur + WEIGHT_EPSILON || cur < WEIGHT_EPSILON)
- return WHERE_THE_FUCK_IS_THE_CUP; // Current weight is smaller than last measured
-
- // Jakob does not like abs, so we check first for
- // WHERE_THE_FUCK_IS_THE_CUP --> then we do not need
- // abs(cur - last_old) < WEIGHT_EPSILON
- if(millis() - last_millis > BOTTLE_EMPTY_INTERVAL) {
- // note that ads1231_get_grams() blocks ~100ms, so
- // BOTTLE_EMPTY_INTERVAL is not accurate.
- // Note: first time the check always passes, then within
- // BOTTLE_EMPTY_INTERVAL additional weight needs to be measured
- // in the cup.
- if (cur - last_old < WEIGHT_EPSILON) {
- return BOTTLE_EMPTY; // Weight does not change means bottle is empty
- }
- last_old = cur;
- last_millis = millis();
- }
-
- last = cur;
- }
- }*/
-
-/**
- * Wait for the cup.
- * Return error codes by delay_until.
- */
-/*
- errv_t wait_for_cup() {
- int weight;
- RETURN_IFN_0(ads1231_get_grams(weight));
- if (weight < WEIGHT_EPSILON) {
- MSG("WAITING_FOR_CUP");
- errv_t ret = delay_until(CUP_TIMEOUT, 0, false);
- if (ret == DELAY_UNTIL_TIMEOUT) {
- return CUP_TIMEOUT_REACHED;
- }
- return ret;
- }
- return 0;
- }*/

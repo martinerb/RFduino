@@ -29,6 +29,7 @@ GSM::GSM() {
 int GSM::begin(int baud_rate) {
 	_cell.begin(baud_rate);
 	timerStart();
+	delay(2000);
 	int response = -1;
 	int cont = 0;
 	boolean norep = true;

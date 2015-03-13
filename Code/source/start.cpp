@@ -9,6 +9,7 @@
 #include "sensor.h"
 #include "HWSerial.h"
 #include "timer.h"
+#include "config.h"
 
 void mainInit();
 void roleHost();
@@ -16,34 +17,57 @@ void roleClientBLE();
 void initADC();
 void roleClientGZLL();
 
-void initGSM()
-{
-	Serial.println("OGSMS");
-	delay(1500);
+void getWeigth() {
+	initADC();
+	delay(1000);
+	client_.setTempValue(20, client_.getCurrentDevice());
+	client_.setLoadWeight(readADC(), client_.getCurrentDevice());
+	ADCPowerDown();
+	delay(500);
+}
+
+void initGSM() {
 	int i = gsm.begin(9600);
 	Serial.end();
 	Serial.begin(9600);
-	delay(2000);
-	Serial.println("OGSME");
-	delay(1500);
-	Serial.printf("Ende init GSM ret = %d---\r\n", i);
+	delay(1000);
+//	Serial.printf("Ende init GSM ret = %d---\r\n", i);
 }
 
-void setup()
-{
+void sendSMS() {
+	String sms_text;
+	sms_text = "Gewichte der Waage: " + String(client_.getCurrentDevice()) + "\r\n"
+			+ String(client_.getLoadWeight(client_.getCurrentDevice()));
+	int ret = gsm.sendSMS(PHONE_NUMBER, sms_text.cstr());
+	Serial.end();
+	Serial.begin(9600);
+	delay(1000);
+	Serial.println(ret);
+}
+
+void setup() {
 	mainInit();
 	//roleClientBLE();
 	//roleHost();
 	//roleClientGZLL();
-	//initADC();
+
 	//initGSM();
 
-	timerStart();
+//-------------------------
+	//for SIM-module
+	//timerStart();
+//-------------------------
+	//for ADC
+	//initADC();
 	shell();
 }
 
-void test()
-{
+void test() {
+
+	getWeigth();
+	Serial.println(client_.getLoadWeight(client_.getCurrentDevice()));
+	//initGSM();
+	//sendSMS();
 //	Serial.print("print values\n\r");
 //	int i = 0;
 //	for (i = 0; i < NODENUMBER; i++) {
@@ -58,7 +82,7 @@ void test()
 //	delay(500);
 //	digitalWrite(4, LOW);
 
-	timerStop();
+//	timerStop();
 //		digitalWrite(4, HIGH);
 //	while (a < 10) {
 //
@@ -81,71 +105,48 @@ void test()
 //	Serial.println((uint32_t) i);
 //	Serial.printf("text: %x\n\r", i);
 }
-void loop()
-{
-// Erste Messung
-//	while(1){
-//		RFduino_ULPDelay(500);
-//		int a=0;
-//		while(a < 0xFFFFF){
-//			a++;
-//		}
-//	}
+void loop() {
+	//shell();
 
-//	RFduino_ULPDelay(INFINITE);
-
-	if (((client_.getCurrentDevice() == DEVICE0)
-			|| (client_.getCurrentDevice() == DEVICE1))
-			&& (client_.getTransactionActive() == false))
-	{
+	if (((client_.getCurrentDevice() == DEVICE0) || (client_.getCurrentDevice() == DEVICE1)) && (client_.getTransactionActive() == false)) {
 		delay(1500);
-		if (client_.getTransactionFinish() == true)
-		{
+		if (client_.getTransactionFinish() == true) {
 			RFduinoGZLL_end();
 			client_.setTransactionFinish(false);
 			//Serial.println(client_.getError());
 			delay(1500);
-			Serial.println("OCF");	//client finish
+			//Serial.println("OCF");	//client finish
 			RFduino_ULPDelay(5000);
 			shell();
 		}
 		client_.setTransactionActive(true);
 		RFduinoGZLL.sendToHost("g?");
-		Serial.println("OSH");	//send to host
+		//Serial.println("OSH");	//send to host
 	}
-	if ((client_.getCurrentDevice() == HOST) && (client_.getTransactionActive()))
-	{
+	if ((client_.getCurrentDevice() == HOST) && (client_.getTransactionActive())) {
 
-	}
-	else if (((client_.getCurrentDevice() == DEVICE0)
-			|| (client_.getCurrentDevice() == DEVICE1))
-			&& (client_.getTransactionActive()))
-	{
+	} else if (((client_.getCurrentDevice() == DEVICE0) || (client_.getCurrentDevice() == DEVICE1)) && (client_.getTransactionActive())) {
 		delay(1500);
 		RFduinoGZLL.sendToHost(NULL, 0);
 		//Serial.println("OWD");//want data
 		delay(1500);
-	}
-	else if (client_.getCurrentDevice() == NOTDEFINED)
-	{
+	} else if (client_.getCurrentDevice() == NOTDEFINED) {
 		//shell();
 		//		Serial.println("Oon");
 		//		delay(1000);
 		//		Serial.println("Ooff");
 		//		RFduino_ULPDelay(1000);
-	}
-	else
-	{
+	} else {
 		delay(3000);
 		RFduinoGZLL_end();
 		delay(1500);
-		Serial.println("OHF");	//Host finish
+		initGSM();
+		sendSMS();
 		int i = 0;
-		for (i = 0; i < NODENUMBER; i++)
-		{
+		for (i = 0; i < NODENUMBER; i++) {
 			Serial.println(String("nodenumber: ") + String(i));
-			Serial.println(client_.getAdcValue(i));
-			Serial.println(client_.getTempValue(i));
+			Serial.println(client_.getLoadWeight((device_t) i));
+			Serial.println(client_.getTempValue((device_t) i));
 		}
 		delay(1500);
 		shell();
@@ -153,142 +154,58 @@ void loop()
 
 }
 
-void getPhonenumber()
-{
-	char phone_num[20]; // array for the phone number string
-	if (1 == gsm.GetPhoneNumber(1, phone_num))
-	{
-		Serial.end();
-		Serial.begin(9600);
-		Serial.println("habe phone nummber");
-		Serial.println(phone_num);
-
-	}
-	else
-	{
-		Serial.end();
-		Serial.begin(9600);
-		Serial.println("habe phone nummber");
-	}
-
-}
-void sendSMS()
-{
-
-	char phone_num[20]; // array for the phone number string
-	char ret_val = -2;
-	Serial.println("OSMSS");
-	ret_val = gsm.sendSMS("00436603995135", "Strommessung SMS senden");
-	Serial.end();
-	Serial.begin(9600);
-	delay(2000);
-	Serial.println("OSMSF");
-	delay(2000);
-	Serial.printf("returnvalue = %d\n\r", ret_val);
-//	char position;
-//	char sms_text[100]; // array for the SMS text string
-
-//	position = gsm.isSMSPresent(SMS_UNREAD);
-//	if (position) {
-//		// there is new SMS => read it
-//		ret_val = gsm.getSMS(position, phone_num, sms_text, 100);
-//		Serial.end();
-//		Serial.begin(9600);
-//		Serial.println(ret_val);
-//		Serial.println(phone_num);
-//		Serial.println(sms_text);
-//		Serial.println(position);
-//	}
-
-}
-void imei()
-{
-	char * imei = "";
-	imei = gsm.getIMEI();
-	Serial.end();
-	Serial.begin(9600);
-	Serial.println(imei);
-}
-
-void send()
-{
+void send() {
 	int len = 10;
 	char buf[len];
 	char ch = 'A';
-	for (int i = 0; i < len; i++)
-	{
+	for (int i = 0; i < len; i++) {
 		buf[i] = ch;
 		ch++;
 	}
 	client_.sendBLE(buf, len);
 }
 
-void roleClientBLE()
-{
+void roleClientBLE() {
 	//Serial.println("bin BLE client");
 	client_ = Clientclass(true, NOTDEFINED);
 }
 
-void roleClientGZLL()
-{
+void roleClientGZLL() {
 	//Serial.println("GZLL client");
 	//client_ = Clientclass(false, DEVICE1);
+	getWeigth();
 	RFduino_ULPDelay(2000);
 	client_ = Clientclass(false, DEVICE0);
 	delay(1000);
 }
 
-void roleHost()
-{
+void roleHost() {
 //	Serial.println("bin GZLL Host");
 	client_ = Clientclass(false, HOST);
 	delay(1000);
-	Serial.println("ORH");	//role host
+//	Serial.println("ORH");	//role host
 	client_.setTransactionActive(true);
 }
 
-void powerOn()
-{
-	pinMode(4, OUTPUT);
-	digitalWrite(4, HIGH);
-}
-
-void getClientError()
-{
+void getClientError() {
 	Serial.println(client_.getError());
 }
 
-void getADCValues()
-{
-//	int a = 0;
-//	while(a<5){
-	int i = readADC();
-	//Serial.printf("returnvalue");
-	//Serial.println(i);
-//	delay(3000);
-//	a++;
-//	}
-}
-void mainInit()
-{
+void mainInit() {
 	Serial.begin(9600);
 
 	addNewCommand(roleClientBLE, "ble", "client is ble client", true);
 	addNewCommand(roleClientGZLL, "gzll", "client is gzll client", true);
 	addNewCommand(roleHost, "host", "device is hostdevice for gzll", true);
 	addNewCommand(send, "send", "send data", false);
-	addNewCommand(getClientError, "error", "return in error stored string",
-	false);
-	addNewCommand(getADCValues, "read", "read ADC value", false);
+	addNewCommand(getClientError, "error", "return in error stored string", false);
+	addNewCommand(getWeigth, "read", "read ADC value", false);
 	addNewCommand(initADC, "initadc", "read ADC value", false);
-
-	addNewCommand(sendSMS, "sendsms", "sende eine sms and eingestellte nummer",
-	false);
-	addNewCommand(imei, "imei", "return the imei number of the modul", false);
-	addNewCommand(powerOn, "power", "give power to gsm module", false);
+	//addNewCommand(sendSMS, "sendsms", "sende eine sms and eingestellte nummer", false);
+	//addNewCommand(imei, "imei", "return the imei number of the modul", false);
+//	addNewCommand(powerOn, "power", "give power to gsm module", false);
 	addNewCommand(initGSM, "initgsm", "give power to gsm module", false);
-	addNewCommand(getPhonenumber, "number", "return first phonenumber",
-	false);
+	//addNewCommand(getPhonenumber, "number", "return first phonenumber", false);
 	addNewCommand(test, "t", "test", false);
 	delay(5000);
 	//Serial.println("maininit finish");

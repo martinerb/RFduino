@@ -13,16 +13,6 @@
 
 #include "HWSerial.h"
 
-// pins definition
-//#define GSM_ON              8 // connect GSM Module turn ON to pin 77
-//#define GSM_RESET           9 // connect GSM Module RESET to pin 35
-//#define DTMF_OUTPUT_ENABLE  71 // connect DTMF Output Enable not used
-//#define DTMF_DATA_VALID     14 // connect DTMF Data Valid to pin 14
-//#define DTMF_DATA0          72 // connect DTMF Data0 to pin 72
-//#define DTMF_DATA1          73 // connect DTMF Data1 to pin 73
-//#define DTMF_DATA2          74 // connect DTMF Data2 to pin 74
-//#define DTMF_DATA3          75 // connect DTMF Data3 to pin 75
-
 // length for the internal communication buffer
 #define COMM_BUF_LEN        200
 

@@ -15,8 +15,8 @@ private:
 	device_t device_;
 	int rssi;
 	String error_ = "";
-	String adc_value_[NODENUMBER];
-	String temp_value_[NODENUMBER];
+	int weight[NODENUMBER];
+	int temp_value_[NODENUMBER];
 	bool transaction_active_ = false;
 	bool client_transaction_finish = false;
 
@@ -33,10 +33,12 @@ public:
 	void setError(String t);
 	String getError();
 
-	String getTempValue(int node);
-	void setTempValue(String value, int node);
-	String getAdcValue(int node);
-	void setAdcValue(String value, int node);
+	int getTempValue(device_t node);
+	void setTempValue(int value, device_t node);
+
+	int getLoadWeight(device_t node);
+	void setLoadWeight(int value, device_t node);
+
 	bool getTransactionActive();
 	void setTransactionActive(bool ta);
 	bool getTransactionFinish();

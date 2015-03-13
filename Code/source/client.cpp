@@ -12,26 +12,23 @@ Clientclass::Clientclass(bool ble_enable, device_t device) {
 	device_ = device;
 	int rsi = 0;
 
-	//int interval = 675;
-
 	if (ble_enable) {
 		// set the transmit power level in dBm (-20 dBm to +4 dBm)
 		// (this will conserve battery life, and decrease the range
 		// of the transmittion for near proxmity applications)
 		RFduinoBLE.txPowerLevel = -20;
 		RFduinoBLE.advertisementData = "data";
-		RFduinoBLE.advertisementInterval = 675;
-		//RFduinoBLE.advertisementInterval = 1500;
+		RFduinoBLE.advertisementInterval = 10000;
 		RFduinoBLE.connectable = true;
 		RFduinoBLE.deviceName = "mydeviceName";
 		RFduinoBLE.begin();
 	} else {
 		RFduinoGZLL.txPowerLevel = -20;
 		RFduinoGZLL.begin(device);
-
 	}
 }
 
+//only for testing
 void Clientclass::switchConnection(device_t device) {
 	if (ble_transmission) {
 		RFduinoBLE.end();
@@ -60,17 +57,10 @@ void Clientclass::setRSSI(int rssi) {
 }
 
 void Clientclass::sendBLE(char* data, int len) {
-	Serial.println("OS");
-//	Serial.println("start to send over BLE");
+//	Serial.println("OS");
 	if (!RFduinoBLE.send(data, len)) {
-
+	} else {
 	}
-	//	Serial.println("BLE data send");
-	else {
-
-	}
-
-	//Serial.println("could not send data");
 }
 
 void Clientclass::setError(String t) {
@@ -82,18 +72,17 @@ String Clientclass::getError() {
 	error_ = "";
 	return t;
 }
-String Clientclass::getTempValue(int node) {
+int Clientclass::getTempValue(device_t node) {
 	return temp_value_[node];
 }
-void Clientclass::setTempValue(String value, int node) {
+void Clientclass::setTempValue(int value, device_t node) {
 	temp_value_[node] = value;
 }
-
-String Clientclass::getAdcValue(int node) {
-	return adc_value_[node];
+int Clientclass::getLoadWeight(device_t node) {
+	return weight[node];
 }
-void Clientclass::setAdcValue(String value, int node) {
-	adc_value_[node] = value;
+void Clientclass::setLoadWeight(int value, device_t node) {
+	weight[node] = value;
 }
 
 void Clientclass::setTransactionActive(bool ta) {
@@ -117,34 +106,20 @@ int Clientclass::decTransactionCount() {
 int Clientclass::getTransactionCount() {
 	return transaction_count_;
 }
+
 //***************************************************************************************
 //															BLE
 //***************************************************************************************
 void RFduinoBLE_onAdvertisement(bool start) {
-
-	if (start)
-//		Serial.println("onAdvertisement ON");
-		Serial.println("ONADV");
-	else
-		Serial.println("OFFADV");
-		//Serial.println("onAdvertisement OFF");
+	if (start) {
+		//Serial.println("ONADV");
+	} else {
+		//Serial.println("OFFADV");
+	}
 }
 
 void RFduinoBLE_onConnect() {
-	Serial.println("OCON");
-//	Serial.println("have connected");
-	//RFduinoBLE.send("connected", 9);
-}
-
-void RFduinoBLE_onDisconnect() {
-	Serial.println("ODC");
-	//Serial.println("have disconnected");
-}
-
-void RFduinoBLE_onReceive(char *data, int len) {
-	//Serial.printf("arecieved string with len = %d\n\r", len);
-	///delay(1000);
-	Serial.println("Oreceive");
+//	Serial.println("OCON");
 	int leng = 10;
 	char buf[leng];
 	char ch = 'A';
@@ -153,7 +128,14 @@ void RFduinoBLE_onReceive(char *data, int len) {
 		ch++;
 	}
 	client_.sendBLE(buf, leng);
-//	Serial.println(client_.getRSSI());
+
+}
+
+void RFduinoBLE_onDisconnect() {
+//	Serial.println("ODC");
+}
+
+void RFduinoBLE_onReceive(char *data, int len) {
 
 }
 // returns the dBm signal strength indicated by the receiver
@@ -182,57 +164,38 @@ void RFduinoGZLL_onReceive(device_t device, int rssi, char *data, int len) {
 	}
 	if (client_.getCurrentDevice() == HOST) {
 		if (len > 0) {
-//			client_.setError(
-//					String("recieved prot: ") + String(protocol) + String("data")
-//							+ String(cp));
 			if (protocol[0] == 'g') {
 				Serial.println("OHS");
 				client_.setError(String("client want to send data-send temp"));
 				RFduinoGZLL.sendToDevice(device, "t?");
 			} else if ((protocol[0] == 't') && (protocol[1] == '!')) {
-				client_.setError(
-						String("recieved temp -need adc value") + String("\n\r")
-								+ String(cp) + String("\n\r"));
-				client_.setTempValue(cp, device);
+				client_.setError(String("recieved temp -need adc value") + String("\n\r") + String(cp) + String("\n\r"));
+				client_.setTempValue((int) cp, device);
 				RFduinoGZLL.sendToDevice(device, "a?");
 			} else if ((protocol[0] == 'a') && (protocol[1] == '!')) {
-				client_.setError(
-						String("recieved adc -no more values neee") + String("\n\r")
-								+ String(cp) + String("\n\r"));
-				client_.setAdcValue(cp, device);
+				client_.setError(String("recieved adc -no more values neee") + String("\n\r") + String(cp) + String("\n\r"));
+				client_.setLoadWeight((int) cp, device);
 				RFduinoGZLL.sendToDevice(device, "f?");
 				if (client_.decTransactionCount() == 0) {
 					client_.setTransactionActive(false);
-					//RFduinoGZLL.end();
 				}
-
 			}
 		}
 	} else {
 		if (len > 0) {
-			//client_.setError(
-				//	String("recieved prot: ") + String(protocol) + String("data")
-				//			+ String(cp));
 			if ((protocol[0] == 't') && (protocol[1] == '?')) {
 				client_.setError(String("host want to recieve temp\r\n"));
-				int temp = 321;
-				//int temp = 321;
-				RFduinoGZLL.sendToHost(String("t!") + String(temp));
+				RFduinoGZLL.sendToHost(String("t!") + String(client_.getTempValue(client_.getCurrentDevice())));
 			} else if ((protocol[0] == 'a') && (protocol[1] == '?')) {
 				client_.setError(String("host want to recieve adc\r\n"));
-				int adc = 456;
-				//int adc = 87654321;
-				RFduinoGZLL.sendToHost(String("a!") + String(adc));
+				RFduinoGZLL.sendToHost(String("a!") + String(client_.getLoadWeight(client_.getCurrentDevice())));
 			} else if ((protocol[0] == 'f') && (protocol[1] == '?')) {
 				client_.setError(String("transaction finish now\r\n"));
 				client_.setTransactionActive(false);
-				//Serial.println("END: send");
 				client_.setTransactionFinish(true);
 				RFduinoGZLL.end();
 			}
 		} else {
-//			client_.setError(String("len=0"));
 		}
 	}
-
 }

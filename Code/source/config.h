@@ -10,18 +10,18 @@
 #define ADS1231_CLK_PIN  3
 #define ADS1231_PWDN 		 4
 
-
 //GSM
 #define CLOCK_PIN				 4
 #define TOGGLE_INTERVAL 100
+#define PHONE_NUMBER "00436603995135"
+#define HW_SERIAL_RX 5 //muss auf pin7
+#define HW_SERIAL_TX 6// muss auf pin9
+#define HW_BAUDRATE 9600
 
-//#define ADS1231_DIVISOR  1565.1671343537414
-// Zero offset, grams
-//#define ADS1231_OFFSET   (127.97810572652163 - 3)
-#define ADS1231_OFFSET (127.97810572652163 - 85)
-#define ADS1231_DIVISOR  1565.1671343537414
-// Zero offset, grams
 
+// Zero offset, grams
+#define ADS1231_OFFSET 1944.97119
+#define ADS1231_DIVISOR  37.7398907
 
 // How to calibrate using a weight (in grams) and the measured raw value
 // as returned by ads1231_get_value():
@@ -31,9 +31,6 @@
 // weight2 = 679.2
 // ADS1231_DIVISOR = (raw1 - raw2) / (weight1 - weight2)
 // ADS1231_OFFSET  = weight1 - (raw1 * (weight1 - weight2)) / (raw1 - raw2)
-
-
-
 
 // Time to weight for a stable weight on scale
 // if ads1231_get_stable_grams() is called
