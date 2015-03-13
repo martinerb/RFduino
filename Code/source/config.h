@@ -13,7 +13,7 @@
 
 //GSM
 #define CLOCK_PIN				 4
-#define TOGGLE_INTERVAL 500
+#define TOGGLE_INTERVAL 100
 
 //#define ADS1231_DIVISOR  1565.1671343537414
 // Zero offset, grams

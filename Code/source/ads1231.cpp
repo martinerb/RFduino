@@ -46,7 +46,6 @@ void ads1231_init(void) {
 	delay(1);
 }
 
-
 /*
  * Get the raw ADC value. Can block up to 100ms in normal operation.
  * Returns 0 on success, an error code otherwise (see ads1231.h)
@@ -66,13 +65,11 @@ errv_t ads1231_get_value(long& val) {
 		if (millis() > start + 150)
 			return ADS1231_TIMEOUT_HIGH; // Timeout waiting for HIGH
 	}
-	//Serial.println("received high waiting for low");
 	start = millis();
 	while (digitalRead(ADS1231_DATA_PIN) != LOW) {
 		if (millis() > start + 150)
 			return ADS1231_TIMEOUT_LOW; // Timeout waiting for LOW
 	}
-	//Serial.println("received low start");
 	ads1231_last_millis = millis();
 
 	// Read 24 bits
@@ -88,18 +85,14 @@ errv_t ads1231_get_value(long& val) {
 	 * right position (31), divide by 256 to restore the correct value.
 	 */
 	val = (val << 8) / 256;
-
 	/* The data pin now is high or low depending on the last bit that
 	 * was read.
 	 * To get it to the default state (high) we toggle the clock one
 	 * more time (see datasheet page 14 figure 19).
 	 */
-	//delay(5);
 	digitalWrite(ADS1231_CLK_PIN, HIGH);
 	delayMicroseconds(100);
 	digitalWrite(ADS1231_CLK_PIN, LOW);
-
-
 	return 0; // Success
 }
 

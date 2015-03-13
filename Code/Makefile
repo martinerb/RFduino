@@ -35,6 +35,14 @@ ble:
 	make -f makefile.md link
 	make -f makefile.md load1
 	
+blevirt:
+	make -f makefile.md cleansource
+	make -f makefile.md all
+	make -f makefile.md afiles
+	make -f makefile.md main
+	make -f makefile.md link
+	make -f makefile.md load0
+
 
 without-core:
 	make -f makefile.md main
