@@ -24,7 +24,7 @@ unsigned long ads1231_last_millis = 0;
  * Initialize the interface pins
  */
 void ads1231_init(void) {
-	Serial.println("start ADC init");
+//	Serial.println("start ADC init");
 	pinMode(ADS1231_PWDN, OUTPUT);
 	digitalWrite(ADS1231_PWDN, LOW);
 	delay(1);

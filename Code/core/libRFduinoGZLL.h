@@ -42,16 +42,16 @@ extern "C"
 #endif // __cplusplus
 typedef enum
 {
-	DEVICE0,
-	DEVICE1,
-	DEVICE2,
-	DEVICE3,
-	DEVICE4,
-	DEVICE5,
-	DEVICE6,
-	DEVICE7,
-	HOST,
-	NOTDEFINED
+	DEVICE0 = 0,
+	DEVICE1 = 1,
+	DEVICE2 = 2,
+	DEVICE3 = 3,
+	DEVICE4 = 4,
+	DEVICE5 = 5,
+	DEVICE6 = 6,
+	DEVICE7 = 7,
+	HOST = 8,
+	NOTDEFINED = 9
 }device_t;
 
 // -20 dBm to +4 dBm - default +4 dBm

@@ -53,5 +53,6 @@ void timerStop(void)
 {
 	detachInterrupt(TIMER0_IRQn);
 	digitalWrite(CLOCK_PIN, LOW);
+	pinMode(CLOCK_PIN,INPUT);
 	timer_counter = 0;
 }

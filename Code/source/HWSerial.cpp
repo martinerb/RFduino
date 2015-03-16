@@ -13,15 +13,14 @@ HWSerial::HWSerial() {
 }
 
 void HWSerial::printError(const char* c) {
-	Serial.flush();
-	Serial.end();
-	Serial.begin(9600);
-	delay(5000);
-	Serial.println(c);
-	Serial.end();
-	Serial.begin(hw_baudrate, HW_SERIAL_RX, HW_SERIAL_TX);
-	delay(2000);
-
+//	Serial.flush();
+//	Serial.end();
+//	Serial.begin(9600);
+//	delay(5000);
+//	Serial.println(c);
+//	Serial.end();
+//	Serial.begin(hw_baudrate, HW_SERIAL_RX, HW_SERIAL_TX);
+//	delay(2000);
 }
 void HWSerial::end() {
 	Serial.end();
