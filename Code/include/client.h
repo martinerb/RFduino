@@ -1,12 +1,12 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include  "libRFduinoGZLL.h"
+#include "libRFduinoGZLL.h"
 #include "RFduinoGZLL.h"
 #include "RFduinoBLE.h"
 #include "variant.h"
 #include "Arduino.h"
-#define NODENUMBER 1
+#include "../source/config.h"
 
 class Clientclass: public virtual RFduinoGZLLClass {
 private:
@@ -18,8 +18,7 @@ private:
 	bool transaction_active_ = false;
 	bool client_transaction_finish = false;
 
-	int transaction_count_ = NODENUMBER;
-
+	int transaction_count_;
 public:
 	Clientclass(bool ble_enable, device_t device);
 	Clientclass();

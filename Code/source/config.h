@@ -5,6 +5,9 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#define NODENUMBER 2
+#define DATANUMBER 50
+
 //ADC
 #define ADS1231_DATA_PIN 2
 #define ADS1231_CLK_PIN  3

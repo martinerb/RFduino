@@ -718,8 +718,11 @@ char SIMCOM900::ComparePhoneNumber(byte position, char *phone_number) {
  **********************************************************/
 char SIMCOM900::sendSMS(char *number_str, char *message_str) {
 	_cell.begin(9600);
-	if (strlen(message_str) > 159)
-		Serial.println(F("Don't send message longer than 160 characters"));
+	int len = strlen(message_str);
+	if (len > 159) {
+		message_str = (String(message_str).substring(0, 159).cstr());
+		//Serial.println(F("Don't send message longer than 160 characters"));
+	}
 	char ret_val = -1;
 	byte i;
 	char end[2];
@@ -748,7 +751,7 @@ char SIMCOM900::sendSMS(char *number_str, char *message_str) {
 			_cell.flush(); // erase rx circular buffer
 			if (RX_FINISHED_STR_RECV == gsm.WaitResp(7000, 5000, "+CMGS")) {
 				// SMS was send correctly
-				Serial.println(F("SMS was send correctly"));
+				//Serial.println(F("SMS was send correctly"));
 				ret_val = 1;
 				break;
 			} else
@@ -806,8 +809,7 @@ char SIMCOM900::sendSMS(char *number_str, char *message_str) {
  #endif
  }
  **********************************************************/
-char SIMCOM900::getSMS(byte position, char *phone_number, char *SMS_text,
-		byte max_SMS_len) {
+char SIMCOM900::getSMS(byte position, char *phone_number, char *SMS_text, byte max_SMS_len) {
 	char ret_val = -1;
 	char *p_char;
 	char *p_char1;

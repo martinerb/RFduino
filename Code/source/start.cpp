@@ -16,8 +16,21 @@ void roleClientBLE();
 void initADC();
 void roleClientGZLL();
 
-#define DEVICE
-//#define HOST
+//#define DEVICE
+#define HOSTDEVICE
+
+int counter;
+int day;
+
+typedef struct {
+	int time; //1 morning 2 noon 3 evening
+	int day;
+	int load_cell; //which load cell
+	int temp;
+	int weight;
+} saved_data;
+
+saved_data data[DATANUMBER];
 
 Clientclass client_;
 void getWeigth() {
@@ -25,6 +38,7 @@ void getWeigth() {
 	delay(2000);
 	client_.setTempValue(20, client_.getCurrentDevice());
 	int adc = readADC();
+	Serial.println(adc);
 	client_.setLoadWeight(adc, client_.getCurrentDevice());
 	ADCPowerDown();
 	delay(500);
@@ -41,12 +55,29 @@ void initGSM() {
 void sendSMS() {
 	String sms_text;
 	int i = 0;
-	sms_text = "Gewichte der Waage Nummer:";
-	for (i = 1; i <= NODENUMBER; i++) {
-		sms_text += String(i) + String(" ist ") + String(client_.getLoadWeight((device_t) (i - 1))) + String("g");
+	sms_text = "Gewichte der Waagen\r\n ";
+//	for (i = 1; i <= NODENUMBER; i++) {
+//		sms_text += String(i) + String(" ist ") + String(client_.getLoadWeight((device_t) (i - 1))) + String("g");
+//	}
+	int tmp = 0;
+	if ((counter - 1) >= 3) {
+		tmp = (counter - 1) - 3;
+	} else {
+		tmp = 0;
 	}
+
+	//for (i = 1; i <= NODENUMBER; i++) {
+		for (i = (counter - 1); i >= tmp; i--) {
+			sms_text += String("day: ") + String(data[i].day) + String(" Load Cell: ") + String(data[i].load_cell) + String(" time: ")
+					+ String(data[i].time) //+ String("temp: ") + String(data[i].temp)
+					+ String(" weight: ") + String(data[i].weight);
+		}
+	//}
+
 	Serial.println(sms_text);
-	int ret = gsm.sendSMS(PHONE_NUMBER, sms_text.cstr());
+	//initGSM();
+	delay(2000);
+	//int ret = gsm.sendSMS(PHONE_NUMBER, sms_text.cstr());
 	timerStop();
 	Serial.end();
 	Serial.begin(9600);
@@ -54,80 +85,130 @@ void sendSMS() {
 }
 
 void startTransmission() {
-	if (((client_.getCurrentDevice() == DEVICE0) || (client_.getCurrentDevice() == DEVICE1)) && (client_.getTransactionActive() == false)) {
-		delay(1500);
-		if (client_.getTransactionFinish() == true) {
+//	RFduinoGZLL.begin(client_.getCurrentDevice());
+//	Serial.println(client_.getCurrentDevice());
+//	if (client_.getCurrentDevice() == HOST) {
+//		client_.setTransactionActive(true);
+//	}
+	while (1) {
+		if (((client_.getCurrentDevice() == DEVICE0) || (client_.getCurrentDevice() == DEVICE1)) && (client_.getTransactionActive() == false)) {
+			delay(1500);
+			if (client_.getTransactionFinish() == true) {
+				RFduinoGZLL_end();
+				delay(1500);
+				client_.setTransactionFinish(false);
+//			RFduino_ULPDelay(5000);
+				return;
+			}
+			client_.setTransactionActive(true);
+			RFduinoGZLL.sendToHost("g?");
+		}
+		if ((client_.getCurrentDevice() == HOST) && (client_.getTransactionActive())) {
+		} else if (((client_.getCurrentDevice() == DEVICE0) || (client_.getCurrentDevice() == DEVICE1)) && (client_.getTransactionActive())) {
+			delay(1500);
+			RFduinoGZLL.sendToHost(NULL, 0);
+			delay(1500);
+		} else if (client_.getCurrentDevice() == NOTDEFINED) {
+		} else {
+			delay(5000);
 			RFduinoGZLL_end();
 			delay(1500);
-			client_.setTransactionFinish(false);
-//			RFduino_ULPDelay(5000);
+			//sendSMS();
+			return;
 		}
-		client_.setTransactionActive(true);
-		RFduinoGZLL.sendToHost("g?");
-	}
-	if ((client_.getCurrentDevice() == HOST) && (client_.getTransactionActive())) {
-	} else if (((client_.getCurrentDevice() == DEVICE0) || (client_.getCurrentDevice() == DEVICE1)) && (client_.getTransactionActive())) {
-		delay(1500);
-		RFduinoGZLL.sendToHost(NULL, 0);
-		delay(1500);
-	} else if (client_.getCurrentDevice() == NOTDEFINED) {
-	} else {
-		delay(5000);
-		RFduinoGZLL_end();
-		delay(1500);
-		initGSM();
-		delay(1500);
-		sendSMS();
 	}
 }
 
 void setup() {
 	mainInit();
+	counter = 0;
+	day = 1;
 	//roleClientBLE();
 	//roleHost();
-	//roleClientGZLL();
-//	initGSM();
+//	roleClientGZLL();
+	//initGSM();
+
 	shell();
 }
 
 void test() {
-	Serial.println("start");
-	//getWeigth();
-	Serial.println(client_.getLoadWeight(client_.getCurrentDevice()));
-	Serial.println("stop");
+//	Serial.println("start");
+//	//getWeigth();
+//	Serial.println(client_.getLoadWeight(client_.getCurrentDevice()));
+//	Serial.println("stop");
+	int i = 0;
+	for (i = 0; i < counter; i++) {
+		Serial.println(String("day: ") + String(data[i].day) + String(" time: ") + String(data[i].time) //+ String("temp: ") + String(data[i].temp)
+				+ String(" weight: ") + String(data[i].weight) + String("\r\n"));
+	}
+
+}
+
+void saveData(int time) {
+	int i = 0;
+	for (i = 0; i < NODENUMBER; i++) {
+		if (counter > DATANUMBER) {
+			counter = 0;
+		}
+
+		data[counter].load_cell = i+1;
+		data[counter].temp = client_.getTempValue((device_t) (i));
+		data[counter].weight = client_.getLoadWeight((device_t) (i));
+		data[counter].time = time;
+		data[counter].day = day;
+		counter++;
+	}
 }
 
 void loop() {
 // time to next day 8AM
 
-	RFduino_ULPDelay(SECONDS(60));
-#ifndef DEVICE
-	while(1) {
-		roleClientGZLL();
-		startTransmission();
-		RFduino_ULPDelay(SECONDS(65));
-		roleClientGZLL();
-		startTransmission();
-		RFduino_ULPDelay(SECONDS(60));
-		roleClientGZLL();
-		startTransmission();
-		RFduino_ULPDelay(SECONDS(60));
-	}
+	//RFduino_ULPDelay(SECONDS(60));
+#ifdef DEVICE
+//	client_.setLoadWeight(222, DEVICE1);
+//	client_.setTempValue(333, DEVICE1);
+	startTransmission();
+//	shell();
+//	Serial.println("ende");
+	RFduino_ULPDelay(SECONDS(20));
+
+//	client_.setLoadWeight(444, DEVICE1);
+	roleClientGZLL();
+//		Serial.println("2::");
+	startTransmission();
+	RFduino_ULPDelay(SECONDS(20));
+
+//	client_.setLoadWeight(666, DEVICE1);
+	roleClientGZLL();
+//		Serial.println("3::");
+	startTransmission();
+	RFduino_ULPDelay(SECONDS(200));
+
+	Serial.println("day over");
+	roleClientGZLL();
 #endif
 
-#ifndef HOST
-	while (1) {
-		roleHost();
-		startTransmission();
-		RFduino_ULPDelay(MINUTES(1));
-		roleHost();
-		startTransmission();
-		RFduino_ULPDelay(MINUTES(1));
-		roleHost();
-		startTransmission();
-		RFduino_ULPDelay(MINUTES(1));
-	}
-
+#ifdef HOSTDEVICE
+	//roleHost();
+	//	Serial.println("1");
+	startTransmission();
+	saveData(1);
+	RFduino_ULPDelay(SECONDS(10));
+	roleHost();
+	startTransmission();
+	saveData(2);
+	RFduino_ULPDelay(SECONDS(10));
+	roleHost();
+	startTransmission();
+	saveData(3);
+//	test();
+	Serial.println("start send sms");
+	sendSMS();
+	day++;
+	//RFduino_ULPDelay(SECONDS(10));
+	roleHost();
+	Serial.println("day off");
+	//shell();
 #endif
 
 }
@@ -149,10 +230,10 @@ void roleClientBLE() {
 }
 
 void roleClientGZLL() {
-	//client_ = Clientclass(false, DEVICE1);
 	getWeigth();
 	delay(1000);
 	client_ = Clientclass(false, DEVICE0);
+//	client_ = Clientclass(false, DEVICE1);
 	delay(500);
 }
 
