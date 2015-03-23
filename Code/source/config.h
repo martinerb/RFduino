@@ -16,7 +16,7 @@
 //GSM
 #define CLOCK_PIN				 4
 #define TOGGLE_INTERVAL 100
-#define PHONE_NUMBER "00436603995135"
+#define PHONE_NUMBER "00436801135508"//"00436603995135"
 #define HW_SERIAL_RX 5 //muss auf pin7
 #define HW_SERIAL_TX 6// muss auf pin9
 #define HW_BAUDRATE 9600

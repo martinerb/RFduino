@@ -68,16 +68,16 @@ void sendSMS() {
 
 	//for (i = 1; i <= NODENUMBER; i++) {
 		for (i = (counter - 1); i >= tmp; i--) {
-			sms_text += String("day: ") + String(data[i].day) + String(" Load Cell: ") + String(data[i].load_cell) + String(" time: ")
+			sms_text += String("d: ") + String(data[i].day) + String(" C: ") + String(data[i].load_cell) + String(" t: ")
 					+ String(data[i].time) //+ String("temp: ") + String(data[i].temp)
-					+ String(" weight: ") + String(data[i].weight);
+					+ String(" w: ") + String(data[i].weight);
 		}
 	//}
 
 	Serial.println(sms_text);
-	//initGSM();
+	initGSM();
 	delay(2000);
-	//int ret = gsm.sendSMS(PHONE_NUMBER, sms_text.cstr());
+	int ret = gsm.sendSMS(PHONE_NUMBER, sms_text.cstr());
 	timerStop();
 	Serial.end();
 	Serial.begin(9600);
@@ -138,7 +138,7 @@ void test() {
 //	Serial.println("stop");
 	int i = 0;
 	for (i = 0; i < counter; i++) {
-		Serial.println(String("day: ") + String(data[i].day) + String(" time: ") + String(data[i].time) //+ String("temp: ") + String(data[i].temp)
+		Serial.println(String("d: ") + String(data[i].day) + String(" t: ") + String(data[i].time) //+ String("temp: ") + String(data[i].temp)
 				+ String(" weight: ") + String(data[i].weight) + String("\r\n"));
 	}
 
